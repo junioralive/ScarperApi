@@ -13,7 +13,8 @@ import {
   User,
   Film,
   Search,
-  X
+  X,
+  Video
 } from "lucide-react"
 import {
   Sidebar,
@@ -79,9 +80,9 @@ const navItems = [
     icon: Film,
   },
   {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
+    title: "movies",
+    url: "/dashboard/movies",
+    icon: Video,
   },
   {
     title: "Users",
