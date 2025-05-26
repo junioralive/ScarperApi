@@ -16,7 +16,10 @@ import {
   Info,
   Calendar,
   Clock,
-  Mic
+  Mic,
+  Copy,
+  Check,
+  Loader2
 } from "lucide-react"
 import {
   Sidebar,
@@ -54,6 +57,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 // Types for anime details
 interface Episode {
@@ -261,34 +273,132 @@ function Navbar({ title }: { title: string }) {
 
 // Episode card component
 function EpisodeCard({ episode }: { episode: Episode }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [videoUrl, setVideoUrl] = useState<string>("")
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const fetchVideoUrl = async () => {
+    if (!episode.link) {
+      toast.error("No episode link available")
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/video?url=${encodeURIComponent(episode.link)}`)
+      const data = await response.json()
+      
+      if (data.success && data.securedLink) {
+        setVideoUrl(data.securedLink)
+      } else {
+        toast.error(data.error || "Failed to fetch video URL")
+        setVideoUrl("")
+      }
+    } catch (error) {
+      console.error("Error fetching video URL:", error)
+      toast.error("Failed to fetch video URL")
+      setVideoUrl("")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEpisodeClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setDialogOpen(true)
+    fetchVideoUrl()
+  }
+
+  const copyToClipboard = async () => {
+    if (!videoUrl) return
+    
+    try {
+      await navigator.clipboard.writeText(videoUrl)
+      setCopied(true)
+      toast.success("Video URL copied to clipboard!")
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      toast.error("Failed to copy URL")
+    }
+  }
+
   return (
-    <Card className="overflow-hidden border p-0 hover:shadow-md transition-shadow">
-      <a 
-        href={episode.link} 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className="block"
-      >
-        <div className="relative aspect-video">
-          <Image
-            src={episode.imageUrl || '/placeholder-episode.jpg'} 
-            alt={episode.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-            <Play className="h-12 w-12 text-white" />
+    <>
+      <Card className="overflow-hidden border p-0 hover:shadow-md transition-shadow cursor-pointer">
+        <div onClick={handleEpisodeClick} className="block">
+          <div className="relative aspect-video">
+            <Image
+              src={episode.imageUrl || '/placeholder-episode.jpg'} 
+              alt={episode.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Play className="h-12 w-12 text-white" />
+            </div>
+            <Badge className="absolute bottom-2 right-2">
+              S{episode.season} E{episode.number}
+            </Badge>
           </div>
-          <Badge className="absolute bottom-2 right-2">
-            S{episode.season} E{episode.number}
-          </Badge>
+          <div className="p-3">
+            <h3 className="font-medium truncate">{episode.title}</h3>
+          </div>
         </div>
-        <div className="p-3">
-          <h3 className="font-medium truncate">{episode.title}</h3>
-        </div>
-      </a>
-    </Card>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{episode.title}</DialogTitle>
+            <DialogDescription>
+              Season {episode.season}, Episode {episode.number}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Open In Vlc</label>
+              <div className="flex gap-2">
+                <Input
+                  value={loading ? "Loading..." : videoUrl}
+                  readOnly
+                  placeholder={loading ? "Fetching video URL..." : "No video URL available"}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyToClipboard}
+                  disabled={!videoUrl || loading}
+                  className="shrink-0"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : copied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            {/* {videoUrl && (
+              <div className="flex gap-2">
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={() => window.open(videoUrl, '_blank')}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Watch Now
+                </Button>
+              </div>
+            )} */}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
