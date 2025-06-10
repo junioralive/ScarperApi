@@ -1,35 +1,26 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const url = searchParams.get('url')
-
+    
     if (!url) {
-      return NextResponse.json({
-        success: false,
-        error: 'URL parameter is required'
-      }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'URL parameter is required' },
+        { status: 400 }
+      )
     }
 
-    // Forward the request to the external API
-    const response = await fetch(`https://kmmovies-ansh.8man.me/api/hubcloud?url=${encodeURIComponent(url)}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`)
-    }
-
+    const response = await fetch(`https://kmmovies-ansh.8man.me/api/hubcloud?url=${encodeURIComponent(url)}`)
     const data = await response.json()
+    
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error fetching stream links:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch stream links'
-    }, { status: 500 })
+    console.error('Error fetching from hubcloud API:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch video links' },
+      { status: 500 }
+    )
   }
 }

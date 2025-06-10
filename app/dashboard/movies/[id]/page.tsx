@@ -271,6 +271,11 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null)
   const [streamLinks, setStreamLinks] = useState<StreamLink[]>([])
   const [fetchingStreams, setFetchingStreams] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [videoUrl, setVideoUrl] = useState<string>("")
+  const [fetchingVideoUrl, setFetchingVideoUrl] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
   // Unwrap the params object using React.use()
   const unwrappedParams = use(params);
@@ -381,23 +386,51 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
     }
   }
 
-  const handleEpisodeClick = async (episode: Episode) => {
-    setSelectedEpisode(episode)
-    
-    // Navigate to watch page with episode details
-    const watchUrl = `/dashboard/movies/${id}/watch?` + new URLSearchParams({
-      episodeUrl: episode.link,
-      episodeTitle: episode.title,
-      movieTitle: inferredTitle,
-      poster: movieDetails?.mainImage || ''
-    }).toString()
-    
-    router.push(watchUrl)
+  const fetchVideoUrl = async (episodeLink: string) => {
+    if (!episodeLink) {
+      toast.error("No episode link available")
+      return
+    }
+
+    setFetchingVideoUrl(true)
+    try {
+      const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeLink)}`)
+      const data = await response.json()
+      
+      if (data.success && data.links && data.links.length > 0) {
+        setStreamLinks(data.links)
+      } else {
+        toast.error(data.error || "Failed to fetch video URLs")
+        setStreamLinks([])
+      }
+    } catch (error) {
+      console.error("Error fetching video URL:", error)
+      toast.error("Failed to fetch video URLs")
+      setStreamLinks([])
+    } finally {
+      setFetchingVideoUrl(false)
+    }
   }
 
-  const handleStreamLinkClick = (link: StreamLink) => {
-    window.open(link.link, '_blank')
-    toast.success(`Opening ${link.server} in new tab`)
+  const handleEpisodeClick = async (episode: Episode) => {
+    setSelectedEpisode(episode)
+    setDialogOpen(true)
+    setStreamLinks([])
+    setCopiedIndex(null)
+    fetchVideoUrl(episode.link)
+  }
+
+  const copyToClipboard = async (url: string, index: number) => {
+    if (!url) return
+    
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedIndex(index)
+      toast.success("Video URL copied to clipboard!")
+      setTimeout(() => setCopiedIndex(null), 2000)
+    } catch (error) {
+      toast.error("Failed to copy URL")
+    }
   }
 
   const handleQualityClick = (quality: {url: string, quality: string}) => {
@@ -542,9 +575,9 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                               size="sm"
                               className="text-xs relative"
                               onClick={() => handleEpisodeClick(episode)}
-                              disabled={fetchingStreams && selectedEpisode?.link === episode.link}
+                              disabled={fetchingVideoUrl && selectedEpisode?.link === episode.link}
                             >
-                              {fetchingStreams && selectedEpisode?.link === episode.link ? (
+                              {fetchingVideoUrl && selectedEpisode?.link === episode.link ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
                                 <Play className="h-3 w-3 mr-1" />
@@ -561,42 +594,70 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                     </div>
                   )}
 
-                  {/* Stream Links Display */}
-                  {streamLinks.length > 0 && selectedEpisode && (
-                    <div className="mt-6">
-                      <h3 className="text-lg font-semibold mb-3">Available Streams</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {streamLinks.map((link, idx) => (
-                          <div key={idx} className="border rounded-lg p-3">
+                  {/* Remove the Stream Links Display section as it's no longer needed */}
+                </div>
+              </div>
+
+              {/* Video URL Dialog */}
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>{selectedEpisode?.title || "Video"}</DialogTitle>
+                    <DialogDescription>
+                      {inferredTitle}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {fetchingVideoUrl ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                          <p className="text-sm text-muted-foreground">Fetching video links...</p>
+                        </div>
+                      </div>
+                    ) : streamLinks.length > 0 ? (
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium">Available Servers</label>
+                        {streamLinks.map((link, index) => (
+                          <div key={index} className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium">{link.server}</p>
-                                <p className="text-xs text-muted-foreground uppercase">{link.type}</p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleStreamLinkClick(link)}
-                                >
-                                  <ExternalLink className="h-3 w-3 mr-1" />
-                                  Open
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(link.link, '_blank')}
-                                >
-                                  <Download className="h-3 w-3" />
-                                </Button>
-                              </div>
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {link.server} ({link.type.toUpperCase()})
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                value={link.link}
+                                readOnly
+                                className="flex-1 text-xs"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => copyToClipboard(link.link, index)}
+                                className="shrink-0"
+                              >
+                                {copiedIndex === index ? (
+                                  <Check className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
                             </div>
                           </div>
                         ))}
+                        <div className="pt-2 text-xs text-muted-foreground">
+                          Copy the URL and open it in VLC or your preferred media player
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No video links available</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </>
           ) : (
             <div className="flex items-center justify-center h-[50vh]">
