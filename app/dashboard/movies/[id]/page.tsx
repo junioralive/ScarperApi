@@ -252,6 +252,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   const [mdriveEpisodes, setMdriveEpisodes] = useState<MdriveEpisode[]>([])
   const [activeTab, setActiveTab] = useState<string>("1")
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null)
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
 
   // Unwrap the params object using React.use()
   const unwrappedParams = use(params);
@@ -285,8 +286,36 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   // Inferred title from URL
   const inferredTitle = extractTitle(id);
 
+  // Fetch user's API key
+  useEffect(() => {
+    const fetchUserApiKey = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+        const data = await response.json();
+        
+        if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+          // Use the first active API key
+          const activeKey = data.apiKeys.find((key: any) => key.isActive);
+          if (activeKey) {
+            setUserApiKey(activeKey.keyValue);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user API key:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserApiKey();
+    }
+  }, [user]);
+
   useEffect(() => {
     const fetchMovieDetails = async () => {
+      if (!userApiKey) return;
+      
       try {
         setLoading(true)
         // Get the full URL for this movie
@@ -295,7 +324,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         // Fetch movie details using our API
         const res = await fetch(`/api/moviesdrive/episode?url=${encodeURIComponent(fullUrl)}`, {
           headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY !
+            'x-api-key': userApiKey
           }
         })
         const data: ApiResponse = await res.json()
@@ -335,14 +364,14 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
       }
     }
 
-    if (user && id) {
+    if (user && id && userApiKey) {
       fetchMovieDetails()
     }
-  }, [user, id])
+  }, [user, id, userApiKey])
 
   const fetchHubCloudLinks = async (url: string) => {
-    if (!url) {
-      toast.error("No episode link available")
+    if (!url || !userApiKey) {
+      toast.error("No episode link available or API key missing")
       return
     }
 
@@ -350,7 +379,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
     try {
       const response = await fetch(`/api/mdrive?url=${encodeURIComponent(url)}`, {
         headers: {
-          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          'x-api-key': userApiKey
         }
       })
       
@@ -555,8 +584,8 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   }
 
   const fetchVideoUrl = async (episodeLink: string) => {
-    if (!episodeLink) {
-      toast.error("No episode link available")
+    if (!episodeLink || !userApiKey) {
+      toast.error("No episode link available or API key missing")
       return
     }
 
@@ -564,7 +593,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
     try {
       const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeLink)}`, {
         headers: {
-          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          'x-api-key': userApiKey
         }
       })
       const data = await response.json()

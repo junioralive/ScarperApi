@@ -14,12 +14,14 @@ import {
   Film,
   Search,
   X,
-  Video
+  Video,
+  Key
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { DashboardNavbar } from "../layout"
+import { Card, CardContent } from "@/components/ui/card"
 
 // Interface for the API response
 interface MoviePost {
@@ -152,7 +154,7 @@ function MoviesGrid({ posts, searchQuery, isSearching }: { posts: MoviePost[], s
   )
 }
 
-export default function MoviesDashboard() {
+export default function MoviesPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [movies, setMovies] = useState<MoviePost[]>([])
@@ -162,7 +164,8 @@ export default function MoviesDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
+
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
@@ -172,28 +175,64 @@ export default function MoviesDashboard() {
     }
   }, [user, authLoading, router])
 
+  // Fetch user's API key
+  const fetchUserApiKey = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+      const data = await response.json();
+
+      if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+        // Get the first active API key
+        const activeKey = data.apiKeys.find((key: any) => key.isActive);
+        if (activeKey) {
+          setUserApiKey(activeKey.keyValue);
+        } else {
+          setError('No active API key found. Please create an API key first.');
+        }
+      } else {
+        setError('No API keys found. Please create an API key first.');
+      }
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
+      setError('Failed to fetch API keys');
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchUserApiKey();
+    }
+  }, [user])
+
   const fetchMovies = useCallback(async (page: number = 1, search: string = "") => {
+    if (!userApiKey) {
+      setError('API key not available. Please create an API key first.');
+      return;
+    }
+
     try {
       setLoading(true)
+      setError('')
+
+      const baseUrl = '/api/moviesdrive';
+      const searchParams = new URLSearchParams();
       
-      // Build query parameters
-      const params = new URLSearchParams()
       if (search.trim()) {
-        params.append('search', search.trim())
+        searchParams.append('search', search.trim());
+      } else {
+        searchParams.append('page', page.toString());
       }
-      if (page > 1) {
-        params.append('page', page.toString())
-      }
+
+      const url = `${baseUrl}?${searchParams.toString()}`;
       
-      const queryString = params.toString()
-      const url = `/api/moviesdrive${queryString ? `?${queryString}` : ''}`
-      
-      const res = await fetch(url, {
+      const response = await fetch(url, {
         headers: {
-          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          'x-api-key': userApiKey // Use user's API key from database
         }
-      })
-      const data: ApiResponse = await res.json()
+      });
+      const data: ApiResponse = await response.json()
 
       if (data.success) {
         setMovies(data.posts)
@@ -201,7 +240,7 @@ export default function MoviesDashboard() {
           setAllMovies(data.posts) // Only update all movies when not searching
         }
       } else {
-        if (res.status === 401) {
+        if (response.status === 401) {
           setError("API key required. Please create an API key in the API Keys section.")
         } else {
           setError(data.error || "Failed to fetch movie data")
@@ -213,7 +252,7 @@ export default function MoviesDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [userApiKey])
 
   // Fetch initial movie data
   useEffect(() => {
@@ -282,6 +321,32 @@ export default function MoviesDashboard() {
 
   if (!user) {
     return null
+  }
+
+  if (!userApiKey && !loading && !error) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <Key className="w-20 h-20 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                  You need to create an API key first to access movie data.
+                </p>
+                <Button asChild>
+                  <a href="/dashboard/api-keys">
+                    <Key className="w-4 h-4 mr-2" />
+                    Create API Key
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

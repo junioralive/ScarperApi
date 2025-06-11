@@ -72,6 +72,7 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [streamDialogOpen, setStreamDialogOpen] = useState(false)
   const [selectedStreamUrl, setSelectedStreamUrl] = useState<string>('')
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
 
   // Unwrap the params object using React.use()
   const unwrappedParams = use(params);
@@ -83,15 +84,43 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
     }
   }, [user, authLoading, router])
 
+  // Fetch user's API key
+  useEffect(() => {
+    const fetchUserApiKey = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+        const data = await response.json();
+        
+        if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+          // Use the first active API key
+          const activeKey = data.apiKeys.find((key: any) => key.isActive);
+          if (activeKey) {
+            setUserApiKey(activeKey.keyValue);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user API key:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserApiKey();
+    }
+  }, [user]);
+
   useEffect(() => {
     const fetchMovieDetails = async () => {
+      if (!userApiKey) return;
+      
       try {
         setLoading(true)
         const fullUrl = `https://w1.kmmovies.mobi/${id}/`
         
         const res = await fetch(`/api/kmmovies/details?url=${encodeURIComponent(fullUrl)}`, {
           headers: {
-            'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
+            'x-api-key': userApiKey
           }
         })
         const data: ApiResponse = await res.json()
@@ -113,17 +142,22 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
       }
     }
 
-    if (user && id) {
+    if (user && id && userApiKey) {
       fetchMovieDetails()
     }
-  }, [user, id])
+  }, [user, id, userApiKey])
 
   const fetchMagicLinks = async (downloadUrl: string) => {
+    if (!userApiKey) {
+      toast.error("API key required. Please create an API key in the API Keys section.")
+      return
+    }
+    
     setFetchingMagicLinks(true)
     try {
       const res = await fetch(`/api/kmmovies/magic-links?url=${encodeURIComponent(downloadUrl)}`, {
         headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
+          'x-api-key': userApiKey
         }
       })
       const data = await res.json()

@@ -3,11 +3,13 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Key } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+
+import { Card, CardContent } from "@/components/ui/card";
 
 const categories = [
   { id: "all", name: "All", url: "" },
@@ -160,6 +162,7 @@ export default function AnimeDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
 
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -170,8 +173,38 @@ export default function AnimeDashboard() {
     }
   }, [user, authLoading, router]);
 
+  // Fetch user's API key
+  const fetchUserApiKey = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+      const data = await response.json();
+
+      if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+        // Get the first active API key
+        const activeKey = data.apiKeys.find((key: any) => key.isActive);
+        if (activeKey) {
+          setUserApiKey(activeKey.keyValue);
+        } else {
+          setError('No active API key found. Please create an API key first.');
+        }
+      } else {
+        setError('No API keys found. Please create an API key first.');
+      }
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
+      setError('Failed to fetch API keys');
+    }
+  };
+
   // Update fetchAnime to handle categories
   const fetchAnime = useCallback(async (category = "all", search = "") => {
+    if (!userApiKey) {
+      setError('API key not available. Please create an API key first.');
+      return;
+    }
+
     try {
       setLoading(true);
       // Build query parameters
@@ -188,7 +221,7 @@ export default function AnimeDashboard() {
       
       const res = await fetch(url, {
         headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY !
+          'x-api-key': userApiKey // Use user's API key from database
         }
       });
       const data = await res.json();
@@ -211,14 +244,21 @@ export default function AnimeDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userApiKey]);
 
   // Fetch initial anime data
   useEffect(() => {
     if (user) {
+      fetchUserApiKey();
+    }
+  }, [user]);
+
+  // Fetch anime when API key is available
+  useEffect(() => {
+    if (user && userApiKey) {
       fetchAnime(selectedCategory);
     }
-  }, [user, selectedCategory, fetchAnime]);
+  }, [user, selectedCategory, fetchAnime, userApiKey]);
 
   // Handle search functionality
   const performSearch = useCallback(async (query) => {
@@ -240,7 +280,7 @@ export default function AnimeDashboard() {
 
       const res = await fetch(`/api/posts?${params.toString()}`, {
         headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
+          'x-api-key': userApiKey || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
         }
       });
       const data = await res.json();
@@ -260,7 +300,7 @@ export default function AnimeDashboard() {
     } finally {
       setIsSearching(false);
     }
-  }, [selectedCategory, fetchAnime]);
+  }, [selectedCategory, fetchAnime, userApiKey]);
 
   // Update category change handler
   const handleCategoryChange = (category) => {
@@ -285,6 +325,32 @@ export default function AnimeDashboard() {
 
   if (!user) {
     return null;
+  }
+
+  if (!userApiKey && !loading && !error) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <Key className="w-20 h-20 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                  You need to create an API key first to access anime data.
+                </p>
+                <Button asChild>
+                  <a href="/dashboard/api-keys">
+                    <Key className="w-4 h-4 mr-2" />
+                    Create API Key
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

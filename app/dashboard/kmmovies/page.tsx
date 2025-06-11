@@ -7,6 +7,8 @@ import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
+import { Card, CardContent } from "@/components/ui/card"
+import { Key } from "lucide-react"
 
 // Interface for the API response
 interface KMMoviePost {
@@ -155,6 +157,7 @@ export default function KMMoviesDashboard() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
   
   // Debounce search query to avoid too many API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
@@ -165,16 +168,46 @@ export default function KMMoviesDashboard() {
     }
   }, [user, authLoading, router])
 
+  // Fetch user's API key
+  const fetchUserApiKey = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+      const data = await response.json();
+
+      if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+        // Get the first active API key
+        const activeKey = data.apiKeys.find((key: any) => key.isActive);
+        if (activeKey) {
+          setUserApiKey(activeKey.keyValue);
+        } else {
+          setError('No active API key found. Please create an API key first.');
+        }
+      } else {
+        setError('No API keys found. Please create an API key first.');
+      }
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
+      setError('Failed to fetch API keys');
+    }
+  };
+
   const fetchMovies = useCallback(async (page: number = 1, search: string = "") => {
+    if (!userApiKey) {
+      setError('API key not available. Please create an API key first.');
+      return;
+    }
+
     try {
       setLoading(true)
-      
+      setError('')
+
       // Build query parameters
       const params = new URLSearchParams()
       if (search.trim()) {
         params.append('search', search.trim())
-      }
-      if (page > 1) {
+      } else {
         params.append('page', page.toString())
       }
       
@@ -183,7 +216,7 @@ export default function KMMoviesDashboard() {
       
       const res = await fetch(url, {
         headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
+          'x-api-key': userApiKey // Use user's API key from database
         }
       })
       const data: ApiResponse = await res.json()
@@ -206,7 +239,7 @@ export default function KMMoviesDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [userApiKey])
 
   // Fetch initial movie data
   useEffect(() => {
@@ -230,7 +263,7 @@ export default function KMMoviesDashboard() {
       
       const res = await fetch(`/api/kmmovies?${params.toString()}`, {
         headers: {
-          'x-api-key': process.env.NEXT_PUBLIC_TOTU_API_KEY || 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d'
+          'x-api-key': userApiKey // Use user's API key from database
         }
       })
       const data: ApiResponse = await res.json()
@@ -250,7 +283,7 @@ export default function KMMoviesDashboard() {
     } finally {
       setIsSearching(false)
     }
-  }, [currentPage, fetchMovies])
+  }, [currentPage, fetchMovies, userApiKey])
 
   // Effect for debounced search
   useEffect(() => {
@@ -274,6 +307,32 @@ export default function KMMoviesDashboard() {
 
   if (!user) {
     return null
+  }
+
+  if (!userApiKey && !loading && !error) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-12">
+                <Key className="w-20 h-20 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                  You need to create an API key first to access KMmovies data.
+                </p>
+                <Button asChild>
+                  <a href="/dashboard/api-keys">
+                    <Key className="w-4 h-4 mr-2" />
+                    Create API Key
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

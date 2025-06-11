@@ -119,10 +119,37 @@ function EpisodeCard({ episode, isMovie = false }: { episode: Episode, isMovie?:
   const [videoUrl, setVideoUrl] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const { user } = useAuth()
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
+
+  // Fetch user's API key for episode card
+  useEffect(() => {
+    const fetchUserApiKey = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+        const data = await response.json();
+        
+        if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+          const activeKey = data.apiKeys.find((key: any) => key.isActive);
+          if (activeKey) {
+            setUserApiKey(activeKey.keyValue);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user API key:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserApiKey();
+    }
+  }, [user]);
 
   const fetchVideoUrl = async () => {
-    if (!episode.link) {
-      toast.error("No episode link available")
+    if (!episode.link || !userApiKey) {
+      toast.error("No episode link available or API key missing")
       return
     }
 
@@ -130,7 +157,7 @@ function EpisodeCard({ episode, isMovie = false }: { episode: Episode, isMovie?:
     try {
       const response = await fetch(`/api/video?url=${encodeURIComponent(episode.link)}`, {
         headers: {
-          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          'x-api-key': userApiKey
         }
       })
       const data = await response.json()
@@ -265,11 +292,38 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>("1")
   const [showFullOverview, setShowFullOverview] = useState(false)
+  const [userApiKey, setUserApiKey] = useState<string | null>(null)
 
   // Unwrap the params object using React.use()
   const unwrappedParams = use(params);
   // Extract the ID from unwrapped params
   const { id } = unwrappedParams;
+
+  // Fetch user's API key
+  useEffect(() => {
+    const fetchUserApiKey = async () => {
+      if (!user) return;
+      
+      try {
+        const response = await fetch(`/api/api-keys?userId=${user.uid}`);
+        const data = await response.json();
+        
+        if (data.success && data.apiKeys && data.apiKeys.length > 0) {
+          // Use the first active API key
+          const activeKey = data.apiKeys.find((key: any) => key.isActive);
+          if (activeKey) {
+            setUserApiKey(activeKey.keyValue);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch user API key:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserApiKey();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -279,12 +333,14 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     const fetchAnimeDetails = async () => {
+      if (!userApiKey) return;
+      
       try {
         setLoading(true)
         // Make request to our API endpoint with the anime ID
         const res = await fetch(`/api/episodes/${id}?all_seasons=true`, {
           headers: {
-            'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+            'x-api-key': userApiKey
           }
         })
         const data: ApiResponse = await res.json()
@@ -306,10 +362,10 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
       }
     }
 
-    if (user && id) {
+    if (user && id && userApiKey) {
       fetchAnimeDetails()
     }
-  }, [user, id])
+  }, [user, id, userApiKey])
 
   // Check if this is a movie based on the details
   const isMovie = animeDetails?.details?.isMovie || false;

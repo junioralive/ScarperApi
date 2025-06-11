@@ -17,30 +17,18 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get user info for request limits
-    const user = await UserService.getUserByUid(userId);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    const apiKeys = await ApiKeyService.getUserApiKeys(userId);
-
-    // Ensure user data has proper defaults
-    const userRequestsUsed = Number(user.requestsUsed) || 0;
-    const userRequestsLimit = Number(user.requestsLimit) || 1000;
+    // Get API keys and user data
+    const [apiKeys, userData] = await Promise.all([
+      ApiKeyService.getUserApiKeys(userId),
+      UserService.getUserByUid(userId),
+    ]);
 
     return NextResponse.json({
       success: true,
-      apiKeys: apiKeys,
-      user: {
-        requestsUsed: userRequestsUsed,
-        requestsLimit: userRequestsLimit,
-      },
-      userRequestsUsed: userRequestsUsed,
-      userRequestsLimit: userRequestsLimit,
+      apiKeys,
+      userRequestsUsed: userData?.requestsUsed || 0,
+      userRequestsLimit: userData?.requestsLimit || 1000,
+      user: userData,
     });
   } catch (error) {
     console.error('Error fetching API keys:', error);
