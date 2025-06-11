@@ -46,6 +46,7 @@ import { signOut } from "@/lib/auth"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Loader } from "@/components/ui/loader"
 import { Toaster } from "@/components/ui/sonner"
+import { GlobalSearch } from "@/components/global-search"
 
 // Navigation items 
 const navItems = [
@@ -195,6 +196,7 @@ export function DashboardNavbar({ title, children }: { title?: string; children?
         )}
         {children}
         <div className="flex items-center gap-2 ml-auto">
+          <GlobalSearch />
           <ThemeToggle />
         </div>
       </div>
