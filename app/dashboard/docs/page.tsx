@@ -61,7 +61,7 @@ const apiCategories: ApiCategory[] = [
         endpoint: "/api/episodes/{id}",
         description: "Get anime details with seasons and episodes",
         params: [
-          { name: "id", type: "string", required: true, description: "Anime ID from post URL" },
+          { name: "id", type: "string", required: true, description: "Anime ID from post URL Eg /blood-of-zeus-1x1/" },
           { name: "all_seasons", type: "boolean", required: false, description: "Get all seasons episodes (default: false)" },
           { name: "season", type: "number", required: false, description: "Get specific season episodes only" }
         ]
@@ -77,7 +77,7 @@ const apiCategories: ApiCategory[] = [
         endpoint: "/api/video",
         description: "Get streaming links for episode URL",
         params: [
-          { name: "url", type: "string", required: true, description: "Episode URL from episodes response (e.g., https://animesalt.cc/episode/blood-of-zeus-1x1/)" }
+          { name: "url", type: "string", required: true, description: "Episode URL from episodes response (e.g., /blood-of-zeus-1x1/)" }
         ]
       }
     ]
@@ -399,7 +399,7 @@ curl -X GET \\
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card>
               <CardHeader className="pb-4 sm:pb-6">
                 <CardTitle className="text-lg sm:text-xl">API Categories</CardTitle>
@@ -568,49 +568,97 @@ curl -X GET \\
 
                 <TabsContent value="javascript">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto">
-                      <code className="text-xs sm:text-sm">{generateCodeExample("javascript")}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateCodeExample("javascript"))}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* VS Code-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">example.js</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(generateCodeExample("javascript"))}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto">
+                        <code className="text-sm text-gray-300 font-mono">
+                          {generateCodeExample("javascript")}
+                        </code>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="python">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto">
-                      <code className="text-xs sm:text-sm">{generateCodeExample("python")}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateCodeExample("python"))}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* VS Code-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">example.py</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(generateCodeExample("python"))}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto">
+                        <code className="text-sm text-gray-300 font-mono">
+                          {generateCodeExample("python")}
+                        </code>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="curl">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto">
-                      <code className="text-xs sm:text-sm">{generateCodeExample("curl")}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(generateCodeExample("curl"))}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* Terminal-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">terminal</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(generateCodeExample("curl"))}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto">
+                        <code className="text-sm text-gray-300 font-mono">
+                          {generateCodeExample("curl")}
+                        </code>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -632,41 +680,81 @@ curl -X GET \\
 
                 <TabsContent value="home">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
-                      <code>{`{
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* VS Code-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">response.json</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(`{
+  "success": true,
+  "posts": [...],
+  "count": 20
+}`)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto text-xs sm:text-sm">
+                        <code className="text-gray-300 font-mono">{`{
   "success": true,
   "count": 20,
   "posts": [
     {
       "imageUrl": "https://example.com/image.jpg",
       "title": "Attack on Titan Final Season",
-      "postUrl": "https://animesalt.cc/series/attack-on-titan/"
+      "postUrl": "/series/attack-on-titan/" // now here to get epsodes you can ignore /series
     }
   ],
   "searchQuery": null,
   "category": "all",
   "source": "category"
 }`}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(`{
-  "success": true,
-  "posts": [...],
-  "count": 20
-}`)}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="details">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
-                      <code>{`{
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* VS Code-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">episodes.json</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(`{
+  "success": true,
+  "animeName": "Blood of Zeus",
+  "details": {...},
+  "episodes": [...]
+}`)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto text-xs sm:text-sm">
+                        <code className="text-gray-300 font-mono">{`{
   "success": true,
   "animeName": "Blood of Zeus",
   "details": {
@@ -691,50 +779,52 @@ curl -X GET \\
     {
       "id": "blood-of-zeus-1x1",
       "title": "Blood of Zeus 1x1",
-      "link": "https://animesalt.cc/episode/blood-of-zeus-1x1/",
+      "link": "episode/blood-of-zeus-1x1/",
       "season": 1,
       "number": 1,
-      "imageUrl": "https://img.animesalt.com/image/199/1/1.webp"
+      "imageUrl": "https://img.imdb.com/image/199/1/1.webp"
     }
   ]
 }`}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(`{
-  "success": true,
-  "animeName": "Blood of Zeus",
-  "details": {...},
-  "episodes": [...]
-}`)}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="streaming">
                   <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
-                      <code>{`{
+                    <div className="bg-[#1e1e1e] rounded-lg overflow-hidden border border-gray-800">
+                      {/* VS Code-like header */}
+                      <div className="flex items-center justify-between bg-[#2d2d30] px-4 py-2 border-b border-gray-700">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#27ca3f]"></div>
+                          </div>
+                          <span className="text-gray-300 text-sm ml-2">stream.json</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-gray-700 h-6 px-2"
+                          onClick={() => copyToClipboard(`{
+  "success": true,
+  "securedLink": "https://example.com/stream/video.m3u8"
+}`)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {/* Code content */}
+                      <pre className="p-4 overflow-x-auto text-xs sm:text-sm">
+                        <code className="text-gray-300 font-mono">{`{
   "success": true,
   "securedLink": "https://example.com/stream/video.m3u8",
   "remainingRequests": 99
 }`}</code>
-                    </pre>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="absolute top-2 right-2"
-                      onClick={() => copyToClipboard(`{
-  "success": true,
-  "securedLink": "https://example.com/stream/video.m3u8"
-}`)}
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
+                      </pre>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -756,7 +846,7 @@ curl -X GET \\
                 </ol>
                 <div className="mt-3 p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/20 rounded-md">
                   <p className="text-xs text-blue-800 dark:text-blue-200">
-                    <strong>How to extract ID:</strong> From postUrl <code>https://animesalt.cc/series/blood-of-zeus/</code> → use <code>blood-of-zeus</code> as the ID parameter.
+                    <strong>How to extract ID:</strong> From postUrl <code>https://animesalt.cc/series/blood-of-zeus/</code> → use <code>/blood-of-zeus/</code> as the ID parameter.
                   </p>
                 </div>
                 <div className="mt-3 p-2 sm:p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-md">
@@ -765,34 +855,6 @@ curl -X GET \\
                     Use the episode link with the video endpoint to get the actual streaming URL.
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-4 sm:pb-6">
-              <CardTitle className="text-lg sm:text-xl">Authentication</CardTitle>
-              <CardDescription className="text-sm">How to authenticate your API requests</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 sm:p-4 bg-muted rounded-lg">
-                <h4 className="font-semibold mb-2 text-sm sm:text-base">API Key Header</h4>
-                <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-                  Include your API key in the request headers:
-                </p>
-                <code className="block bg-background p-2 rounded text-xs sm:text-sm break-all">
-                  x-api-key: YOUR_API_KEY_HERE
-                </code>
-              </div>
-              
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>
-                  Get your API key from the{" "}
-                  <a href="/dashboard/api-keys" className="text-primary hover:underline">
-                    API Keys page
-                  </a>
-                </span>
               </div>
             </CardContent>
           </Card>
