@@ -72,6 +72,9 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [streamDialogOpen, setStreamDialogOpen] = useState(false)
   const [selectedStreamUrl, setSelectedStreamUrl] = useState<string>('')
+  const [hubcloudDialogOpen, setHubcloudDialogOpen] = useState(false)
+  const [hubcloudStreamUrls, setHubcloudStreamUrls] = useState<any[]>([])
+  const [fetchingHubcloud, setFetchingHubcloud] = useState(false)
   const [userApiKey, setUserApiKey] = useState<string | null>(null)
 
   // Unwrap the params object using React.use()
@@ -163,7 +166,7 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
       const data = await res.json()
       
       if (data.success && data.data.links) {
-        // Filter out GDTOT links and keep only GDFLIX and Watch Online
+        // Filter out GDTOT links and keep only GDFLIX, Watch Online, and HUBCLOUD
         const filteredLinks = data.data.links.filter((link: any) => 
           link.provider !== 'GDTOT'
         )
@@ -192,6 +195,39 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
   const handleStreamClick = (streamUrl: string) => {
     setSelectedStreamUrl(streamUrl)
     setStreamDialogOpen(true)
+  }
+
+  const handleHubcloudClick = async (hubcloudUrl: string) => {
+    if (!userApiKey) {
+      toast.error("API key required")
+      return
+    }
+
+    setFetchingHubcloud(true)
+    setHubcloudDialogOpen(true)
+    setHubcloudStreamUrls([])
+
+    try {
+      const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(hubcloudUrl)}`, {
+        headers: {
+          'x-api-key': userApiKey
+        }
+      })
+      const data = await response.json()
+
+      if (data.success && data.links && data.links.length > 0) {
+        setHubcloudStreamUrls(data.links)
+      } else {
+        toast.error("Failed to fetch HubCloud stream links")
+        setHubcloudStreamUrls([])
+      }
+    } catch (error) {
+      console.error("Error fetching HubCloud links:", error)
+      toast.error("Failed to fetch HubCloud stream links")
+      setHubcloudStreamUrls([])
+    } finally {
+      setFetchingHubcloud(false)
+    }
   }
 
   const copyToClipboard = async (url: string, index: number) => {
@@ -383,9 +419,6 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
               <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                   <DialogTitle>{selectedLink?.quality} Download</DialogTitle>
-                  {/* <DialogDescription>
-                    Available download options for {movieDetails.title}
-                  </DialogDescription> */}
                 </DialogHeader>
                 <div className="space-y-4">
                   {fetchingMagicLinks ? (
@@ -406,23 +439,36 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
                             </span>
                           </div>
                           <div className="flex gap-2">
-                            <Input
-                              value={link.url}
-                              readOnly
-                              className="flex-1 text-xs"
-                            />
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => copyToClipboard(link.url, index)}
-                              className="shrink-0"
-                            >
-                              {copiedIndex === index ? (
-                                <Check className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
-                              )}
-                            </Button>
+                            {link.type === 'hubcloud' ? (
+                              <Button
+                                variant="outline"
+                                className="flex-1 text-xs"
+                                onClick={() => handleHubcloudClick(link.url)}
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Get Stream Links
+                              </Button>
+                            ) : (
+                              <>
+                                <Input
+                                  value={link.url}
+                                  readOnly
+                                  className="flex-1 text-xs"
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => copyToClipboard(link.url, index)}
+                                  className="shrink-0"
+                                >
+                                  {copiedIndex === index ? (
+                                    <Check className="h-4 w-4 text-green-500" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -442,37 +488,60 @@ export default function KMMovieDetailPage({ params }: { params: { id: string } }
               </DialogContent>
             </Dialog>
 
-            {/* Stream Dialog */}
-            <Dialog open={streamDialogOpen} onOpenChange={setStreamDialogOpen}>
-              <DialogContent className="sm:max-w-md">
+            {/* HubCloud Stream Dialog */}
+            <Dialog open={hubcloudDialogOpen} onOpenChange={setHubcloudDialogOpen}>
+              <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Watch Online</DialogTitle>
-                  {/* <DialogDescription>
-                    Direct video stream for {movieDetails.title}
-                  </DialogDescription> */}
+                  <DialogTitle>HubCloud Stream Links</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Stream URL</label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={selectedStreamUrl}
-                        readOnly
-                        className="flex-1 text-xs"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => copyToClipboard(selectedStreamUrl, 0)}
-                        className="shrink-0"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                  {fetchingHubcloud ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <p className="text-sm text-muted-foreground">Fetching stream links...</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Copy this URL and open it in VLC or your preferred media player to watch the movie.
-                  </div>
+                  ) : hubcloudStreamUrls.length > 0 ? (
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">Available Servers</label>
+                      {hubcloudStreamUrls.map((link, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {link.server} ({link.type?.toUpperCase() || 'STREAM'})
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              value={link.link}
+                              readOnly
+                              className="flex-1 text-xs"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => copyToClipboard(link.link, index)}
+                              className="shrink-0"
+                            >
+                              {copiedIndex === index ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="pt-2 text-xs text-muted-foreground">
+                        Copy the URL and open it in VLC or your preferred media player
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No stream links available</p>
+                    </div>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>

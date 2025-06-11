@@ -7,16 +7,17 @@ import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api
 async function getMagicLinksData(url: string) {
   try {
     console.log(`Fetching magic links from: ${url}`);
-
     const response = await fetch(url, {
       cache: 'no-cache',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://w1.kmmovies.mobi/',
+        'Referer': 'https://w1.kmmovies.mobi/'
       },
-      next: { revalidate: 0 }
+      next: {
+        revalidate: 0
+      }
     });
 
     if (!response.ok) {
@@ -25,7 +26,6 @@ async function getMagicLinksData(url: string) {
 
     const html = await response.text();
     const $ = load(html);
-    
     const links = [];
 
     // Extract Watch Online link and extract the actual video URL
@@ -34,12 +34,11 @@ async function getMagicLinksData(url: string) {
       try {
         const url = new URL(watchOnlineLink);
         const videoUrl = url.searchParams.get('videoUrl');
-        
         if (videoUrl) {
           links.push({
             type: 'stream',
             provider: 'Watch Online',
-            url: videoUrl, // Use the actual video URL instead of the wrapper
+            url: videoUrl,
             quality: 'Stream',
             description: 'Direct video stream URL'
           });
@@ -63,6 +62,52 @@ async function getMagicLinksData(url: string) {
           description: 'Watch directly in browser'
         });
       }
+    }
+
+    // Extract SkyTech links and clean the URL
+    const skytechLink = $('a[href*="skytech.works/nf/index.php"]:contains("WATCH ONLINE")').attr('href');
+    if (skytechLink) {
+      try {
+        const url = new URL(skytechLink);
+        const videoUrl = url.searchParams.get('videoUrl');
+        if (videoUrl) {
+          links.push({
+            type: 'stream',
+            provider: 'SkyTech',
+            url: videoUrl,
+            quality: 'Stream',
+            description: 'Direct video stream URL from SkyTech'
+          });
+        } else {
+          links.push({
+            type: 'stream',
+            provider: 'SkyTech',
+            url: skytechLink,
+            quality: 'Stream',
+            description: 'SkyTech stream'
+          });
+        }
+      } catch (urlError) {
+        links.push({
+          type: 'stream',
+          provider: 'SkyTech',
+          url: skytechLink,
+          quality: 'Stream',
+          description: 'SkyTech stream'
+        });
+      }
+    }
+
+    // Extract HubCloud link
+    const hubcloudLink = $('a[href*="hubcloud"]:contains("HUBCLOUD")').attr('href');
+    if (hubcloudLink) {
+      links.push({
+        type: 'hubcloud',
+        provider: 'HUBCLOUD',
+        url: hubcloudLink,
+        quality: 'Stream',
+        description: 'HubCloud streaming link'
+      });
     }
 
     // Extract GDFLIX link
@@ -97,7 +142,7 @@ async function getMagicLinksData(url: string) {
       
       if (href && text && !links.some(link => link.url === href)) {
         // Check if it's one of our target providers
-        if (text.includes('WATCH ONLINE') || text.includes('GDFLIX') || text.includes('GDTOT')) {
+        if (text.includes('WATCH ONLINE') || text.includes('GDFLIX') || text.includes('GDTOT') || text.includes('HUBCLOUD')) {
           let provider = 'Unknown';
           let type = 'download';
           let finalUrl = href;
@@ -105,8 +150,7 @@ async function getMagicLinksData(url: string) {
           if (text.includes('WATCH ONLINE')) {
             provider = 'Watch Online';
             type = 'stream';
-            
-            // Extract video URL from zipzap.lol parameter if it's a watch online link
+            // Extract video URL from zipzap.lol or skytech parameter if it's a watch online link
             if (href.includes('zipzap.lol/nf/index.php')) {
               try {
                 const url = new URL(href);
@@ -117,11 +161,25 @@ async function getMagicLinksData(url: string) {
               } catch (urlError) {
                 // Keep original URL if parsing fails
               }
+            } else if (href.includes('skytech.works/nf/index.php')) {
+              try {
+                const url = new URL(href);
+                const videoUrl = url.searchParams.get('videoUrl');
+                if (videoUrl) {
+                  finalUrl = videoUrl;
+                  provider = 'SkyTech';
+                }
+              } catch (urlError) {
+                // Keep original URL if parsing fails
+              }
             }
           } else if (text.includes('GDFLIX')) {
             provider = 'GDFLIX';
           } else if (text.includes('GDTOT')) {
             provider = 'GDTOT';
+          } else if (text.includes('HUBCLOUD')) {
+            provider = 'HUBCLOUD';
+            type = 'hubcloud';
           }
           
           links.push({
@@ -136,7 +194,6 @@ async function getMagicLinksData(url: string) {
     });
 
     console.log(`Found ${links.length} magic links`);
-
     return {
       links,
       sourceUrl: url,
