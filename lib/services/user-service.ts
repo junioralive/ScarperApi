@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { usersTable } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm/sql/expressions/conditions';
+import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 export class UserService {
   static async createOrUpdateUser(firebaseUser: any, provider: string) {
@@ -68,7 +69,7 @@ export class UserService {
       const [updatedUser] = await db
         .update(usersTable)
         .set({
-          requestsUsed: usersTable.requestsUsed + 1,
+          requestsUsed: sql`${usersTable.requestsUsed} + 1`,
           updatedAt: new Date(),
         })
         .where(eq(usersTable.uid, uid))
