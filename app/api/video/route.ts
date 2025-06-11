@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 
 interface VideoResponse {
   success: boolean;
@@ -20,6 +21,12 @@ interface VideoResponse {
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
+    // Validate API key
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      return createUnauthorizedResponse(authResult.error || 'Invalid API key');
+    }
+
     // Get the URL parameter
     const { searchParams } = new URL(request.url);
     const episodeUrl = searchParams.get('url');
@@ -102,8 +109,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json({
       success: true,
       securedLink: data.videoData.securedLink,
-      // isHls: data.videoData.hls || false,
-      // poster: data.videoData.videoImage
+      remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed) : 0
     });
   } catch (error) {
     console.error('Error fetching video link:', error);

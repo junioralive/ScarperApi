@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/index';
-import { apiKeysTable } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { apiKeysTable, usersTable } from '@/lib/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { generateApiKey } from '@/lib/utils/api-key-generator';
 
 export class ApiKeyService {
@@ -12,8 +12,6 @@ export class ApiKeyService {
         userId, // This is now a Firebase UID (string)
         keyName,
         keyValue,
-        requestsUsed: 0,
-        requestsLimit: 1000,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -86,40 +84,99 @@ export class ApiKeyService {
     }
   }
 
-  static async validateApiKey(keyValue: string) {
+  static async validateAndIncrementUsage(keyValue: string) {
     try {
+      // Find the API key and get user info
       const [apiKey] = await db
-        .select()
+        .select({
+          id: apiKeysTable.id,
+          userId: apiKeysTable.userId,
+          keyName: apiKeysTable.keyName,
+          isActive: apiKeysTable.isActive,
+          userRequestsUsed: usersTable.requestsUsed,
+          userRequestsLimit: usersTable.requestsLimit,
+        })
         .from(apiKeysTable)
-        .where(
-          and(
-            eq(apiKeysTable.keyValue, keyValue),
-            eq(apiKeysTable.isActive, true)
-          )
-        )
+        .leftJoin(usersTable, eq(apiKeysTable.userId, usersTable.uid))
+        .where(eq(apiKeysTable.keyValue, keyValue))
         .limit(1);
 
-      return apiKey || null;
+      if (!apiKey) {
+        return null;
+      }
+
+      // Check if key is active
+      if (!apiKey.isActive) {
+        return null;
+      }
+
+      // Check if user usage limit is exceeded
+      const requestsUsed = Number(apiKey.userRequestsUsed) || 0;
+      const requestsLimit = Number(apiKey.userRequestsLimit) || 1000;
+      
+      if (requestsUsed >= requestsLimit) {
+        return null;
+      }
+
+      // Increment user's usage count
+      await db
+        .update(usersTable)
+        .set({
+          requestsUsed: sql`${usersTable.requestsUsed} + 1`
+        })
+        .where(eq(usersTable.uid, apiKey.userId));
+
+      return {
+        id: apiKey.id,
+        userId: apiKey.userId,
+        keyName: apiKey.keyName,
+        isActive: apiKey.isActive,
+        requestsUsed: requestsUsed + 1,
+        requestsLimit: requestsLimit,
+      };
     } catch (error) {
-      console.error('Error validating API key:', error);
-      return null;
+      throw error;
     }
   }
 
-  static async incrementUsage(keyId: string) {
+  static async validateApiKey(keyValue: string) {
     try {
-      await db
-        .update(apiKeysTable)
-        .set({
-          requestsUsed: apiKeysTable.requestsUsed + 1,
-          updatedAt: new Date(),
+      const [apiKey] = await db
+        .select({
+          id: apiKeysTable.id,
+          userId: apiKeysTable.userId,
+          keyName: apiKeysTable.keyName,
+          isActive: apiKeysTable.isActive,
+          userRequestsUsed: usersTable.requestsUsed,
+          userRequestsLimit: usersTable.requestsLimit,
         })
-        .where(eq(apiKeysTable.id, keyId));
+        .from(apiKeysTable)
+        .leftJoin(usersTable, eq(apiKeysTable.userId, usersTable.uid))
+        .where(eq(apiKeysTable.keyValue, keyValue))
+        .limit(1);
 
-      return true;
+      if (!apiKey) {
+        return null;
+      }
+
+      const requestsUsed = Number(apiKey.userRequestsUsed) || 0;
+      const requestsLimit = Number(apiKey.userRequestsLimit) || 1000;
+
+      if (!apiKey.isActive || requestsUsed >= requestsLimit) {
+        return null;
+      }
+
+      return {
+        id: apiKey.id,
+        userId: apiKey.userId,
+        keyName: apiKey.keyName,
+        isActive: apiKey.isActive,
+        requestsUsed: requestsUsed,
+        requestsLimit: requestsLimit,
+      };
     } catch (error) {
-      console.error('Error incrementing API key usage:', error);
-      return false;
+      console.error('Error validating API key:', error);
+      throw error;
     }
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ApiKeyService } from '@/lib/services/api-key-service';
+import { UserService } from '@/lib/services/user-service';
 
 export async function GET(request: Request) {
   try {
@@ -13,11 +14,29 @@ export async function GET(request: Request) {
       );
     }
 
+    // Get user info for request limits
+    const user = await UserService.getUserByUid(userId);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     const apiKeys = await ApiKeyService.getUserApiKeys(userId);
+
+    // Add user request info to each API key for display
+    const apiKeysWithUserInfo = apiKeys.map(key => ({
+      ...key,
+      requestsUsed: user.requestsUsed,
+      requestsLimit: user.requestsLimit,
+    }));
 
     return NextResponse.json({
       success: true,
-      apiKeys,
+      apiKeys: apiKeysWithUserInfo,
+      userRequestsUsed: user.requestsUsed,
+      userRequestsLimit: user.requestsLimit,
     });
   } catch (error) {
     console.error('Error fetching API keys:', error);

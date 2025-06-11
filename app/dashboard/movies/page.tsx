@@ -188,7 +188,11 @@ export default function MoviesDashboard() {
       const queryString = params.toString()
       const url = `/api/moviesdrive${queryString ? `?${queryString}` : ''}`
       
-      const res = await fetch(url)
+      const res = await fetch(url, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      })
       const data: ApiResponse = await res.json()
 
       if (data.success) {
@@ -197,7 +201,11 @@ export default function MoviesDashboard() {
           setAllMovies(data.posts) // Only update all movies when not searching
         }
       } else {
-        setError("Failed to fetch movie data")
+        if (res.status === 401) {
+          setError("API key required. Please create an API key in the API Keys section.")
+        } else {
+          setError(data.error || "Failed to fetch movie data")
+        }
       }
     } catch (err) {
       setError("An error occurred while fetching movie data")
@@ -228,13 +236,21 @@ export default function MoviesDashboard() {
       const params = new URLSearchParams()
       params.append('search', query.trim())
       
-      const res = await fetch(`/api/moviesdrive?${params.toString()}`)
+      const res = await fetch(`/api/moviesdrive?${params.toString()}`, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      })
       const data: ApiResponse = await res.json()
 
       if (data.success) {
         setMovies(data.posts)
       } else {
-        setMovies([])
+        if (res.status === 401) {
+          setError("API key required. Please create an API key in the API Keys section.")
+        } else {
+          setMovies([])
+        }
       }
     } catch (err) {
       console.error("Search error:", err)

@@ -128,13 +128,21 @@ function EpisodeCard({ episode, isMovie = false }: { episode: Episode, isMovie?:
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/video?url=${encodeURIComponent(episode.link)}`)
+      const response = await fetch(`/api/video?url=${encodeURIComponent(episode.link)}`, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      })
       const data = await response.json()
       
       if (data.success && data.securedLink) {
         setVideoUrl(data.securedLink)
       } else {
-        toast.error(data.error || "Failed to fetch video URL")
+        if (response.status === 401) {
+          toast.error("API key required. Please create an API key in the API Keys section.")
+        } else {
+          toast.error(data.error || "Failed to fetch video URL")
+        }
         setVideoUrl("")
       }
     } catch (error) {
@@ -274,13 +282,21 @@ export default function AnimeDetailPage({ params }: { params: { id: string } }) 
       try {
         setLoading(true)
         // Make request to our API endpoint with the anime ID
-        const res = await fetch(`/api/episodes/${id}?all_seasons=true`)
+        const res = await fetch(`/api/episodes/${id}?all_seasons=true`, {
+          headers: {
+            'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          }
+        })
         const data: ApiResponse = await res.json()
 
         if (data.success) {
           setAnimeDetails(data)
         } else {
-          setError(data.error || "Failed to fetch anime details")
+          if (res.status === 401) {
+            setError("API key required. Please create an API key in the API Keys section.")
+          } else {
+            setError(data.error || "Failed to fetch anime details")
+          }
         }
       } catch (err) {
         setError("An error occurred while fetching anime details")

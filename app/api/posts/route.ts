@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 
 // Function to remove duplicate posts based on postUrl
 function deduplicatePosts(posts: any[]) {
@@ -167,6 +168,12 @@ async function searchAnimeData(searchQuery: string, category?: string) {
 
 export async function GET(request: Request) {
   try {
+    // Validate API key
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      return createUnauthorizedResponse(authResult.error || 'Invalid API key');
+    }
+
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get('search');
     const category = searchParams.get('category');
@@ -203,7 +210,8 @@ export async function GET(request: Request) {
       posts,
       searchQuery: searchQuery || null,
       category: category || 'all',
-      source: searchQuery && posts.length > 0 ? 'search' : 'category'
+      source: searchQuery && posts.length > 0 ? 'search' : 'category',
+      remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed) : 0
     });
   } catch (error) {
     return NextResponse.json(

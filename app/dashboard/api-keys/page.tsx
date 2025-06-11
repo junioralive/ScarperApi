@@ -10,12 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Key, Plus, Trash2, Eye, EyeOff, Copy } from 'lucide-react';
+import { Loader2, Key, Plus, Trash2, Eye, EyeOff, Copy, User } from 'lucide-react';
 import { ApiKey } from '@/lib/db/schema';
 
 export default function ApiKeysPage() {
   const { user } = useAuth();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [userRequestsUsed, setUserRequestsUsed] = useState(0);
+  const [userRequestsLimit, setUserRequestsLimit] = useState(1000);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
@@ -38,7 +40,10 @@ export default function ApiKeysPage() {
       const data = await response.json();
 
       if (data.success) {
-        setApiKeys(data.apiKeys);
+        setApiKeys(data.apiKeys || []);
+        // Use user data with proper fallbacks to avoid NaN
+        setUserRequestsUsed(Number(data.user?.requestsUsed) || 0);
+        setUserRequestsLimit(Number(data.user?.requestsLimit) || 1000);
       } else {
         setError(data.error || 'Failed to fetch API keys');
       }
@@ -131,6 +136,43 @@ export default function ApiKeysPage() {
       <div className="border-b">
       </div>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+        {/* User Request Usage Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Your Request Usage
+            </CardTitle>
+            <CardDescription>
+              Total requests used across all your API keys
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Usage</span>
+                <span className="text-sm text-muted-foreground">
+                  {userRequestsUsed.toLocaleString()} / {userRequestsLimit.toLocaleString()}
+                </span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-3">
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.min((userRequestsUsed / userRequestsLimit) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {Math.round((userRequestsUsed / userRequestsLimit) * 100) || 0}% used
+                {userRequestsUsed >= userRequestsLimit && (
+                  <span className="text-destructive ml-2">• Limit reached</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-muted-foreground">
@@ -140,7 +182,7 @@ export default function ApiKeysPage() {
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button disabled={userRequestsUsed >= userRequestsLimit}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Key
               </Button>
@@ -189,7 +231,7 @@ export default function ApiKeysPage() {
               Your API Keys
             </CardTitle>
             <CardDescription>
-              Each API key comes with 1,000 free requests. Keep your keys secure and never share them publicly.
+              All API keys share your total request limit of {userRequestsLimit.toLocaleString()} requests.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
@@ -207,7 +249,11 @@ export default function ApiKeysPage() {
                 <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                   You haven't created any API keys yet. Create one to get started with our API services.
                 </p>
-                <Button onClick={() => setIsDialogOpen(true)} size="lg">
+                <Button 
+                  onClick={() => setIsDialogOpen(true)} 
+                  size="lg"
+                  disabled={userRequestsUsed >= userRequestsLimit}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Create Your First Key
                 </Button>
@@ -219,7 +265,6 @@ export default function ApiKeysPage() {
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="h-12 px-6">Name</TableHead>
                       <TableHead className="h-12">Key</TableHead>
-                      <TableHead className="h-12">Usage</TableHead>
                       <TableHead className="h-12">Status</TableHead>
                       <TableHead className="h-12">Created</TableHead>
                       <TableHead className="h-12 text-right">Actions</TableHead>
@@ -254,24 +299,6 @@ export default function ApiKeysPage() {
                             >
                               <Copy className="w-4 h-4" />
                             </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium">
-                              {apiKey.requestsUsed.toLocaleString()} / {apiKey.requestsLimit.toLocaleString()}
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div
-                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                style={{
-                                  width: `${Math.min((apiKey.requestsUsed / apiKey.requestsLimit) * 100, 100)}%`,
-                                }}
-                              />
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {Math.round((apiKey.requestsUsed / apiKey.requestsLimit) * 100)}% used
-                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="py-4">

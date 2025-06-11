@@ -293,7 +293,11 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         const fullUrl = `https://moviesdrive.design/${id}/`
         
         // Fetch movie details using our API
-        const res = await fetch(`/api/moviesdrive/episode?url=${encodeURIComponent(fullUrl)}`)
+        const res = await fetch(`/api/moviesdrive/episode?url=${encodeURIComponent(fullUrl)}`, {
+          headers: {
+            'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          }
+        })
         const data: ApiResponse = await res.json()
 
         if (data.success && data.data) {
@@ -317,7 +321,11 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
             }
           }
         } else {
-          setError(data.error || "Failed to fetch movie details")
+          if (res.status === 401) {
+            setError("API key required. Please create an API key in the API Keys section.")
+          } else {
+            setError(data.error || "Failed to fetch movie details")
+          }
         }
       } catch (err) {
         setError("An error occurred while fetching movie details")
@@ -340,7 +348,11 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
 
     setFetchingHubCloud(true)
     try {
-      const response = await fetch(`/api/mdrive?url=${encodeURIComponent(url)}`)
+      const response = await fetch(`/api/mdrive?url=${encodeURIComponent(url)}`, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -550,13 +562,21 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
 
     setFetchingVideoUrl(true)
     try {
-      const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeLink)}`)
+      const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeLink)}`, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      })
       const data = await response.json()
       
       if (data.success && data.links && data.links.length > 0) {
         setStreamLinks(data.links)
       } else {
-        toast.error(data.error || "Failed to fetch video URLs")
+        if (response.status === 401) {
+          toast.error("API key required. Please create an API key in the API Keys section.")
+        } else {
+          toast.error(data.error || "Failed to fetch video URLs")
+        }
         setStreamLinks([])
       }
     } catch (error) {

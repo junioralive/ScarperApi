@@ -48,9 +48,16 @@ export default function WatchMoviePage() {
       try {
         setLoading(true)
         
-        const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeUrl)}`)
+        const response = await fetch(`/api/hubcloud?url=${encodeURIComponent(episodeUrl)}`, {
+          headers: {
+            'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+          }
+        })
         
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("API key required. Please create an API key in the API Keys section.")
+          }
           throw new Error(`HTTP error! status: ${response.status}`)
         }
         

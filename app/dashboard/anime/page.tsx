@@ -186,7 +186,11 @@ export default function AnimeDashboard() {
       const queryString = params.toString();
       const url = `/api/posts${queryString ? `?${queryString}` : ''}`;
       
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      });
       const data = await res.json();
       
       if (data.success) {
@@ -195,7 +199,11 @@ export default function AnimeDashboard() {
           setAllAnime(data.posts); // Only update all anime when not searching
         }
       } else {
-        setError("Failed to fetch anime data");
+        if (res.status === 401) {
+          setError("API key required. Please create an API key in the API Keys section.");
+        } else {
+          setError("Failed to fetch anime data");
+        }
       }
     } catch (err) {
       setError("An error occurred while fetching anime data");
@@ -230,13 +238,21 @@ export default function AnimeDashboard() {
         params.append('category', selectedCategory);
       }
 
-      const res = await fetch(`/api/posts?${params.toString()}`);
+      const res = await fetch(`/api/posts?${params.toString()}`, {
+        headers: {
+          'x-api-key': 'ak_33ec1317f28b9126487af7639c7aab16e813d4064972829d' // This should come from user's API keys
+        }
+      });
       const data = await res.json();
       
       if (data.success) {
         setAnime(data.posts);
       } else {
-        setAnime([]);
+        if (res.status === 401) {
+          setError("API key required. Please create an API key in the API Keys section.");
+        } else {
+          setAnime([]);
+        }
       }
     } catch (err) {
       console.error("Search error:", err);

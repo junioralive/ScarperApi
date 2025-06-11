@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { load } from "cheerio"
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth'
 
 interface HubCloudLink {
   title: string;
@@ -162,6 +163,12 @@ async function extractHubCloudLinks(url: string): Promise<ExtractedData> {
 
 export async function GET(request: Request) {
   try {
+    // Validate API key
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      return createUnauthorizedResponse(authResult.error || 'Invalid API key');
+    }
+
     const { searchParams } = new URL(request.url)
     const url = searchParams.get('url')
 
@@ -187,7 +194,8 @@ export async function GET(request: Request) {
       directLinks: data.directLinks,
       episodeCount: data.episodes.length,
       linkCount: data.directLinks.length,
-      sourceUrl: url
+      sourceUrl: url,
+      remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed) : 0
     })
 
   } catch (error) {

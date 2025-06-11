@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { load } from 'cheerio';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 
 // Function to normalize image URLs - handling protocol-relative URLs
 function normalizeImageUrl(url: string | undefined): string | undefined {
@@ -153,6 +154,15 @@ async function searchMoviesDriveData(searchQuery: string) {
 
 export async function GET(request: Request) {
   try {
+    // Validate API key first
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      console.log('API key validation failed:', authResult.error);
+      return createUnauthorizedResponse(authResult.error || 'Invalid API key');
+    }
+
+    console.log('API key validated successfully for user');
+
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get('search');
     const pageParam = searchParams.get('page');
@@ -160,26 +170,39 @@ export async function GET(request: Request) {
 
     let posts = [];
 
-    if (searchQuery) {
-      // Use search functionality if a search query is provided
-      posts = await searchMoviesDriveData(searchQuery);
-    } else {
-      // Otherwise get regular page content
-      posts = await scrapeMoviesDriveData(page);
-    }
+    try {
+      if (searchQuery) {
+        // Use search functionality if a search query is provided
+        posts = await searchMoviesDriveData(searchQuery);
+      } else {
+        // Otherwise get regular page content
+        posts = await scrapeMoviesDriveData(page);
+      }
 
-    return NextResponse.json({
-      success: true,
-      count: posts.length,
-      posts,
-      searchQuery: searchQuery || null,
-      page,
-      source: searchQuery ? 'search' : 'page'
-    });
+      return NextResponse.json({
+        success: true,
+        count: posts.length,
+        posts,
+        searchQuery: searchQuery || null,
+        page,
+        source: searchQuery ? 'search' : 'page',
+        remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed - 1) : 0
+      });
+    } catch (scrapeError) {
+      console.error('Scraping error:', scrapeError);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch movie data from source',
+        details: scrapeError instanceof Error ? scrapeError.message : 'Unknown scraping error'
+      }, {
+        status: 500
+      });
+    }
   } catch (error) {
+    console.error('API error:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch content'
+      error: error instanceof Error ? error.message : 'Internal server error'
     }, {
       status: 500
     });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { load } from 'cheerio';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 
 // Function to normalize URLs
 function normalizeUrl(url: string | undefined): string | undefined {
@@ -228,6 +229,15 @@ async function getEpisodeDetails(url: string) {
 
 export async function GET(request: Request) {
   try {
+    // Validate API key first
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      console.log('API key validation failed:', authResult.error);
+      return createUnauthorizedResponse(authResult.error || 'Invalid API key');
+    }
+
+    console.log('API key validated successfully for episode request');
+
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
 
@@ -238,7 +248,7 @@ export async function GET(request: Request) {
       }, { status: 400 });
     }
 
-    // Make sure the URL is from moviesdrive.solutions
+    // Make sure the URL is from moviesdrive.design
     if (!url.includes('moviesdrive.design')) {
       return NextResponse.json({
         success: false,
@@ -246,16 +256,27 @@ export async function GET(request: Request) {
       }, { status: 400 });
     }
 
-    const episodeDetails = await getEpisodeDetails(url);
+    try {
+      const episodeDetails = await getEpisodeDetails(url);
 
-    return NextResponse.json({
-      success: true,
-      data: episodeDetails
-    });
+      return NextResponse.json({
+        success: true,
+        data: episodeDetails,
+        remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed - 1) : 0
+      });
+    } catch (scrapeError) {
+      console.error('Episode scraping error:', scrapeError);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch episode details',
+        details: scrapeError instanceof Error ? scrapeError.message : 'Unknown error'
+      }, { status: 500 });
+    }
   } catch (error) {
+    console.error('Episode API error:', error);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch episode details'
+      error: error instanceof Error ? error.message : 'Internal server error'
     }, { status: 500 });
   }
 }

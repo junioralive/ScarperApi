@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 
 // TypeScript interfaces for data structures
 interface Episode {
@@ -471,6 +472,15 @@ export async function GET(
   { params }: { params: { id: string } }
 ): Promise<NextResponse<ApiResponse>> {
   try {
+    // Validate API key
+    const authResult = await validateApiKey(request);
+    if (!authResult.isValid) {
+      return NextResponse.json({ 
+        success: false, 
+        error: authResult.error || 'Invalid API key' 
+      }, { status: 401 });
+    }
+
     const { id } = params;
     const url = new URL(request.url);
     
@@ -646,7 +656,13 @@ export async function GET(
       responseData.episodes = episodesData;
     }
     
-    return NextResponse.json(responseData);
+    // Add remaining requests to all successful responses
+    const addRemainingRequests = (responseData: any) => ({
+      ...responseData,
+      remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed) : 0
+    });
+
+    return NextResponse.json(addRemainingRequests(responseData));
   } catch (error) {
     return NextResponse.json(
       { 
