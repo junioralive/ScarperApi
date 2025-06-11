@@ -196,33 +196,19 @@ function UserMenu() {
   )
 }
 
-interface DashboardNavbarProps {
-  title?: string
-  children?: React.ReactNode
-  onToggleSidebar?: () => void
-  isSidebarOpen?: boolean
-}
-
-export function DashboardNavbar({ title, children, onToggleSidebar, isSidebarOpen }: DashboardNavbarProps) {
+// Global navbar component - now exported
+export function DashboardNavbar({ title, children }: { title?: string; children?: React.ReactNode }) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-background z-10">
       <SidebarTrigger className="-ml-1" />
-      {/* Mobile hamburger menu */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onToggleSidebar}
-        className="md:hidden"
-      >
-        {isSidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-      </Button>
       <div className="flex flex-1 items-center justify-between">
-        {title ? (
-          <h1 className="text-lg font-semibold">{title}</h1>
-        ) : (
-          <div className="flex-1">{children}</div>
+        {title && (
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold">{title}</h1>
+          </div>
         )}
-        <div className="flex items-center gap-2">
+        {children}
+        <div className="flex items-center gap-2 ml-auto">
           <ThemeToggle />
         </div>
       </div>
@@ -301,6 +287,7 @@ export default function DashboardLayout({
       )}
 
       <SidebarInset className="flex flex-col">
+        <DashboardNavbar />
         {children}
       </SidebarInset>
     </SidebarProvider>

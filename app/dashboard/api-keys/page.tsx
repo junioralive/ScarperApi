@@ -123,168 +123,196 @@ export default function ApiKeysPage() {
   };
 
   if (!user) {
-    return <div>Please log in to access this page.</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
+          <p className="text-gray-600">Please log in to access this page.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">API Keys</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your API keys for accessing our services
-          </p>
-        </div>
-
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Key
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New API Key</DialogTitle>
-              <DialogDescription>
-                Give your API key a name to help you identify it later.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="keyName">Key Name</Label>
-                <Input
-                  id="keyName"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                  placeholder="My API Key"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={createApiKey}
-                disabled={creating || !newKeyName.trim()}
-              >
-                {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Create Key
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="w-5 h-5" />
-            Your API Keys
-          </CardTitle>
-          <CardDescription>
-            Each API key comes with 1,000 free requests. Keep your keys secure and never share them publicly.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              Loading API keys...
-            </div>
-          ) : apiKeys.length === 0 ? (
-            <div className="text-center py-8">
-              <Key className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">No API Keys</h3>
-              <p className="text-gray-600 mb-4">
-                You haven't created any API keys yet. Create one to get started.
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="ml-64 p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
+              <p className="text-muted-foreground">
+                Manage your API keys for accessing our services
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Key
-              </Button>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Key</TableHead>
-                  <TableHead>Usage</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {apiKeys.map((apiKey) => (
-                  <TableRow key={apiKey.id}>
-                    <TableCell className="font-medium">{apiKey.keyName}</TableCell>
-                    <TableCell className="font-mono text-sm">
-                      <div className="flex items-center gap-2">
-                        <span>{formatKeyValue(apiKey.keyValue, apiKey.id)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleKeyVisibility(apiKey.id)}
-                        >
-                          {visibleKeys.has(apiKey.id) ? (
-                            <EyeOff className="w-4 h-4" />
-                          ) : (
-                            <Eye className="w-4 h-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(apiKey.keyValue)}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {apiKey.requestsUsed} / {apiKey.requestsLimit}
-                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{
-                              width: `${(apiKey.requestsUsed / apiKey.requestsLimit) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={apiKey.isActive ? "default" : "secondary"}>
-                        {apiKey.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(apiKey.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteApiKey(apiKey.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="shadow-sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Key
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New API Key</DialogTitle>
+                  <DialogDescription>
+                    Give your API key a name to help you identify it later.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="keyName">Key Name</Label>
+                    <Input
+                      id="keyName"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      placeholder="My API Key"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={createApiKey}
+                    disabled={creating || !newKeyName.trim()}
+                  >
+                    {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Create Key
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {error && (
+            <Alert variant="destructive" className="mb-6 shadow-sm">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </CardContent>
-      </Card>
+
+          <Card className="shadow-sm border-0 bg-white">
+            <CardHeader className="border-b bg-gray-50/50">
+              <CardTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5" />
+                Your API Keys
+              </CardTitle>
+              <CardDescription>
+                Each API key comes with 1,000 free requests. Keep your keys secure and never share them publicly.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                  <span className="text-muted-foreground">Loading API keys...</span>
+                </div>
+              ) : apiKeys.length === 0 ? (
+                <div className="text-center py-12 px-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Key className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No API Keys</h3>
+                  <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                    You haven't created any API keys yet. Create one to get started with our API services.
+                  </p>
+                  <Button onClick={() => setIsDialogOpen(true)} size="lg">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Your First Key
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="h-12 px-6">Name</TableHead>
+                        <TableHead className="h-12">Key</TableHead>
+                        <TableHead className="h-12">Usage</TableHead>
+                        <TableHead className="h-12">Status</TableHead>
+                        <TableHead className="h-12">Created</TableHead>
+                        <TableHead className="h-12 text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {apiKeys.map((apiKey) => (
+                        <TableRow key={apiKey.id} className="hover:bg-gray-50/50">
+                          <TableCell className="font-medium px-6 py-4">{apiKey.keyName}</TableCell>
+                          <TableCell className="font-mono text-sm py-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                {formatKeyValue(apiKey.keyValue, apiKey.id)}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleKeyVisibility(apiKey.id)}
+                                className="h-8 w-8 p-0"
+                              >
+                                {visibleKeys.has(apiKey.id) ? (
+                                  <EyeOff className="w-4 h-4" />
+                                ) : (
+                                  <Eye className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(apiKey.keyValue)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">
+                                {apiKey.requestsUsed.toLocaleString()} / {apiKey.requestsLimit.toLocaleString()}
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{
+                                    width: `${Math.min((apiKey.requestsUsed / apiKey.requestsLimit) * 100, 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {Math.round((apiKey.requestsUsed / apiKey.requestsLimit) * 100)}% used
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge variant={apiKey.isActive ? "default" : "secondary"} className="font-medium">
+                              {apiKey.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4 text-muted-foreground">
+                            {new Date(apiKey.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </TableCell>
+                          <TableCell className="py-4 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteApiKey(apiKey.id)}
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8 p-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

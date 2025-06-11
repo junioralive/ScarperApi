@@ -1,18 +1,9 @@
 "use client"
 
 import { useAuth } from "@/contexts/auth-context"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useEffect, useState, use } from "react"
 import {
-  Home,
-  Settings,
-  Users,
-  BarChart3,
-  FileText,
-  LogOut,
-  User,
-  Film,
-  Video,
   Calendar,
   Clock,
   Info,
@@ -23,33 +14,7 @@ import {
   Play,
   Download
 } from "lucide-react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { signOut } from "@/lib/auth"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { 
@@ -59,43 +24,49 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
 import Image from "next/image"
 import { DashboardNavbar } from "../../layout"
 
 // Navigation items 
-const navItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Anime",
-    url: "/dashboard/anime",
-    icon: Film,
-  },
-  {
-    title: "Movies",
-    url: "/dashboard/movies",
-    icon: Video,
-  },
-  {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Users",
-    url: "/dashboard/users",
-    icon: Users,
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
-]
+// const navItems = [
+//   {
+//     title: "Dashboard",
+//     url: "/dashboard",
+//     icon: Home,
+//   },
+//   {
+//     title: "Anime",
+//     url: "/dashboard/anime",
+//     icon: Film,
+//   },
+//   {
+//     title: "Movies",
+//     url: "/dashboard/movies",
+//     icon: Video,
+//   },
+//   {
+//     title: "Analytics",
+//     url: "/dashboard/analytics",
+//     icon: BarChart3,
+//   },
+//   {
+//     title: "Users",
+//     url: "/dashboard/users",
+//     icon: Users,
+//   },
+//   {
+//     title: "Settings",
+//     url: "/dashboard/settings",
+//     icon: Settings,
+//   },
+// ]
 
 // Types
 interface MovieDetails {
@@ -803,334 +774,330 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <div className="flex flex-col flex-1">
-          <DashboardNavbar title={inferredTitle} />
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto">
-            {loading ? (
-              <div className="w-full mt-4">
-                <div className="w-full h-64 bg-muted animate-pulse rounded-lg mb-4" />
-                <div className="h-8 bg-muted animate-pulse rounded w-1/3 mb-2" />
-                <div className="h-4 bg-muted animate-pulse rounded w-full mb-1" />
-                <div className="h-4 bg-muted animate-pulse rounded w-5/6" />
+    <div className="flex flex-col min-h-screen">
+      <DashboardNavbar title={inferredTitle} />
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto">
+        {loading ? (
+          <div className="w-full mt-4">
+            <div className="w-full h-64 bg-muted animate-pulse rounded-lg mb-4" />
+            <div className="h-8 bg-muted animate-pulse rounded w-1/3 mb-2" />
+            <div className="h-4 bg-muted animate-pulse rounded w-full mb-1" />
+            <div className="h-4 bg-muted animate-pulse rounded w-5/6" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        ) : movieDetails ? (
+          <>
+            {/* Movie Header Section */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Movie Poster */}
+              <div className="md:col-span-1">
+                <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                  <Image
+                    src={movieDetails.mainImage || '/placeholder.jpg'}
+                    alt={inferredTitle}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                    priority
+                  />
+                </div>
               </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-                <p className="text-destructive mb-4">{error}</p>
-                <Button onClick={() => window.location.reload()}>Retry</Button>
-              </div>
-            ) : movieDetails ? (
-              <>
-                {/* Movie Header Section */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  {/* Movie Poster */}
-                  <div className="md:col-span-1">
-                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                      <Image
-                        src={movieDetails.mainImage || '/placeholder.jpg'}
-                        alt={inferredTitle}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 25vw"
-                        priority
-                      />
-                    </div>
+              
+              {/* Movie Info */}
+              <div className="md:col-span-3">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-4">{inferredTitle}</h1>
+                
+                {/* IMDB Rating */}
+                {movieDetails.imdbRating?.text && (
+                  <div className="mb-4">
+                    <a 
+                      href={movieDetails.imdbRating.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium hover:underline"
+                    >
+                      <Badge variant="outline" className="bg-amber-100/50 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/20">
+                        IMDb
+                      </Badge>
+                      {movieDetails.imdbRating.text}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
-                  
-                  {/* Movie Info */}
-                  <div className="md:col-span-3">
-                    <h1 className="text-2xl sm:text-3xl font-bold mb-4">{inferredTitle}</h1>
-                    
-                    {/* IMDB Rating */}
-                    {movieDetails.imdbRating?.text && (
-                      <div className="mb-4">
-                        <a 
-                          href={movieDetails.imdbRating.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium hover:underline"
-                        >
-                          <Badge variant="outline" className="bg-amber-100/50 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/20">
-                            IMDb
-                          </Badge>
-                          {movieDetails.imdbRating.text}
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      </div>
-                    )}
-                    
-                    {/* Storyline */}
-                    <div className="bg-slate-100 dark:bg-black/20 rounded-xl p-4 border border-slate-200 dark:border-white/5 mb-6">
-                      <h2 className="flex items-center gap-2 text-lg font-semibold mb-3">
-                        <Info className="h-4 w-4 text-purple-500" />
-                        Overview
-                      </h2>
-                      <div className="relative">
-                        <div className={`relative overflow-hidden transition-all duration-300 text-slate-700 dark:text-muted-foreground ${showFullOverview ? '' : 'max-h-[4.5em]'}`}>
-                          <p>{movieDetails.storyline || "No overview available."}</p>
-                        </div>
-                        {!showFullOverview && movieDetails.storyline && movieDetails.storyline.length > 200 && (
-                          <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-slate-100 dark:from-black/20 to-transparent"></div>
-                        )}
-                        {movieDetails.storyline && movieDetails.storyline.length > 200 && (
-                          <button 
-                            onClick={() => setShowFullOverview(!showFullOverview)} 
-                            className="text-purple-600 dark:text-purple-500 font-medium text-xs mt-2 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
-                          >
-                            {showFullOverview ? "Read Less" : "Read More"}
-                          </button>
-                        )}
-                      </div>
+                )}
+                
+                {/* Storyline */}
+                <div className="bg-slate-100 dark:bg-black/20 rounded-xl p-4 border border-slate-200 dark:border-white/5 mb-6">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold mb-3">
+                    <Info className="h-4 w-4 text-purple-500" />
+                    Overview
+                  </h2>
+                  <div className="relative">
+                    <div className={`relative overflow-hidden transition-all duration-300 text-slate-700 dark:text-muted-foreground ${showFullOverview ? '' : 'max-h-[4.5em]'}`}>
+                      <p>{movieDetails.storyline || "No overview available."}</p>
                     </div>
-                    
-                    {/* Season Selector */}
-                    {apiSeasons.length > 1 && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">Select Season</h3>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-2">
-                              Season {selectedSeason}
-                              <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 15 15"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                              >
-                                <path
-                                  d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.26618 11.9026 7.38064 11.95 7.49999 11.95C7.61933 11.95 7.73379 11.9026 7.81819 11.8182L10.0682 9.56819Z"
-                                  fill="currentColor"
-                                  fillRule="evenodd"
-                                  clipRule="evenodd"
-                                ></path>
-                              </svg>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            {apiSeasons.map((season) => (
-                              <DropdownMenuItem 
-                                key={season}
-                                onClick={() => handleSeasonChange(season)}
-                                className={selectedSeason === season ? "bg-accent" : ""}
-                              >
-                                Season {season}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                    {!showFullOverview && movieDetails.storyline && movieDetails.storyline.length > 200 && (
+                      <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-slate-100 dark:from-black/20 to-transparent"></div>
                     )}
-                    
-                    {/* Quality Selector - Only show qualities for selected season */}
-                    {selectedSeason !== null && seasonQualityOptions.length > 0 && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">
-                          Select Quality - Season {selectedSeason}
-                        </h3>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" className="w-auto shadow-sm">
-                              {selectedQuality ? extractQuality(selectedQuality.quality) : "Select Quality"}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-40" align="center">
-                            {seasonQualityOptions.map((quality, idx) => (
-                              <DropdownMenuItem 
-                                key={idx}
-                                onClick={() => handleQualityClick(quality)}
-                                className="cursor-pointer"
-                              >
-                                {extractQuality(quality.quality)}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    )}
-
-                    {/* HubCloud Links Section */}
-                    {selectedQuality && selectedQuality.url.includes('mdrive.today') && mdriveEpisodes.length === 0 && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">
-                          HubCloud Links - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
-                        </h3>
-                        {fetchingHubCloud ? (
-                          <div className="flex items-center gap-2 py-4">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">Loading HubCloud links...</span>
-                          </div>
-                        ) : hubCloudLinks.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {hubCloudLinks.map((link, idx) => (
-                              <Button
-                                key={idx}
-                                variant="outline"
-                                className="text-xs h-auto p-3 flex flex-col items-start gap-1 max-w-full"
-                                onClick={() => handleHubCloudLinkClick(link)}
-                              >
-                                <div className="flex items-center gap-2 w-full min-w-0">
-                                  <Download className="h-3 w-3 text-blue-500 flex-shrink-0" />
-                                  <span className="font-medium truncate" title={link.title}>
-                                    {link.title.length > 40 ? `${link.title.slice(0, 40)}...` : link.title}
-                                  </span>
-                                </div>
-                                {link.id && (
-                                  <span className="text-xs text-muted-foreground self-start">
-                                    {link.id.replace('HubCloud-', '')}
-                                  </span>
-                                )}
-                              </Button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-muted-foreground py-4">
-                            No HubCloud links found
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Episodes Section (for non-mdrive URLs) */}
-                    {selectedQuality && !selectedQuality.url.includes('mdrive.today') && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">
-                          Episodes - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
-                        </h3>
-                        {fetchingEpisodes ? (
-                          <div className="flex items-center gap-2 py-4">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">Loading episodes...</span>
-                          </div>
-                        ) : episodes.length > 0 ? (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                            {episodes.map((episode, idx) => (
-                              <Button
-                                key={idx}
-                                variant={selectedEpisode?.link === episode.link ? "default" : "outline"}
-                                size="sm"
-                                className="text-xs relative"
-                                onClick={() => handleEpisodeClick(episode)}
-                                disabled={fetchingVideoUrl && selectedEpisode?.link === episode.link}
-                              >
-                                {fetchingVideoUrl && selectedEpisode?.link === episode.link ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <Play className="h-3 w-3 mr-1" />
-                                )}
-                                {extractEpisodeNumber(episode.title)}
-                              </Button>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-muted-foreground py-4">
-                            No episodes found
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* MDrive Episodes Section */}
-                    {selectedQuality && selectedQuality.url.includes('mdrive.today') && mdriveEpisodes.length > 0 && (
-                      <div className="mt-6">
-                        <h3 className="text-lg font-semibold mb-3">
-                          Episodes - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
-                        </h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                          {mdriveEpisodes.map((episode, idx) => (
-                            <Button
-                              key={idx}
-                              variant="outline"
-                              size="sm"
-                              className="text-xs relative"
-                              onClick={() => {
-                                if (episode.hubCloudLinks.length > 0) {
-                                  handleHubCloudLinkClick(episode.hubCloudLinks[0])
-                                }
-                              }}
-                              disabled={episode.hubCloudLinks.length === 0}
-                            >
-                              <Play className="h-3 w-3 mr-1" />
-                              Episode {episode.episodeNumber.padStart(2, '0')}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
+                    {movieDetails.storyline && movieDetails.storyline.length > 200 && (
+                      <button 
+                        onClick={() => setShowFullOverview(!showFullOverview)} 
+                        className="text-purple-600 dark:text-purple-500 font-medium text-xs mt-2 hover:text-purple-500 dark:hover:text-purple-400 transition-colors"
+                      >
+                        {showFullOverview ? "Read Less" : "Read More"}
+                      </button>
                     )}
                   </div>
                 </div>
+                
+                {/* Season Selector */}
+                {apiSeasons.length > 1 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">Select Season</h3>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="flex items-center gap-2">
+                          Season {selectedSeason}
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 15 15"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                          >
+                            <path
+                              d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.26618 11.9026 7.38064 11.95 7.49999 11.95C7.61933 11.95 7.73379 11.9026 7.81819 11.8182L10.0682 9.56819Z"
+                              fill="currentColor"
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                            ></path>
+                          </svg>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {apiSeasons.map((season) => (
+                          <DropdownMenuItem 
+                            key={season}
+                            onClick={() => handleSeasonChange(season)}
+                            className={selectedSeason === season ? "bg-accent" : ""}
+                          >
+                            Season {season}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+                
+                {/* Quality Selector - Only show qualities for selected season */}
+                {selectedSeason !== null && seasonQualityOptions.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">
+                      Select Quality - Season {selectedSeason}
+                    </h3>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="secondary" className="w-auto shadow-sm">
+                          {selectedQuality ? extractQuality(selectedQuality.quality) : "Select Quality"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-40" align="center">
+                        {seasonQualityOptions.map((quality, idx) => (
+                          <DropdownMenuItem 
+                            key={idx}
+                            onClick={() => handleQualityClick(quality)}
+                            className="cursor-pointer"
+                          >
+                            {extractQuality(quality.quality)}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
-                {/* Video URL Dialog */}
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle>{selectedEpisode?.title || "Video"}</DialogTitle>
-                      <DialogDescription>
-                        {inferredTitle}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      {fetchingVideoUrl ? (
-                        <div className="flex items-center justify-center py-8">
-                          <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin" />
-                            <p className="text-sm text-muted-foreground">Fetching video links...</p>
-                          </div>
-                        </div>
-                      ) : streamLinks.length > 0 ? (
-                        <div className="space-y-3">
-                          <label className="text-sm font-medium">Available Servers</label>
-                          {streamLinks.map((link, index) => (
-                            <div key={index} className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium text-muted-foreground">
-                                  {link.server} ({link.type.toUpperCase()})
-                                </span>
-                              </div>
-                              <div className="flex gap-2">
-                                <Input
-                                  value={link.link}
-                                  readOnly
-                                  className="flex-1 text-xs"
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => copyToClipboard(link.link, index)}
-                                  className="shrink-0"
-                                >
-                                  {copiedIndex === index ? (
-                                    <Check className="h-4 w-4 text-green-500" />
-                                  ) : (
-                                    <Copy className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
+                {/* HubCloud Links Section */}
+                {selectedQuality && selectedQuality.url.includes('mdrive.today') && mdriveEpisodes.length === 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">
+                      HubCloud Links - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
+                    </h3>
+                    {fetchingHubCloud ? (
+                      <div className="flex items-center gap-2 py-4">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Loading HubCloud links...</span>
+                      </div>
+                    ) : hubCloudLinks.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {hubCloudLinks.map((link, idx) => (
+                          <Button
+                            key={idx}
+                            variant="outline"
+                            className="text-xs h-auto p-3 flex flex-col items-start gap-1 max-w-full"
+                            onClick={() => handleHubCloudLinkClick(link)}
+                          >
+                            <div className="flex items-center gap-2 w-full min-w-0">
+                              <Download className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                              <span className="font-medium truncate" title={link.title}>
+                                {link.title.length > 40 ? `${link.title.slice(0, 40)}...` : link.title}
+                              </span>
                             </div>
-                          ))}
-                          <div className="pt-2 text-xs text-muted-foreground">
-                            Copy the URL and open it in VLC or your preferred media player
+                            {link.id && (
+                              <span className="text-xs text-muted-foreground self-start">
+                                {link.id.replace('HubCloud-', '')}
+                              </span>
+                            )}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-4">
+                        No HubCloud links found
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Episodes Section (for non-mdrive URLs) */}
+                {selectedQuality && !selectedQuality.url.includes('mdrive.today') && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">
+                      Episodes - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
+                    </h3>
+                    {fetchingEpisodes ? (
+                      <div className="flex items-center gap-2 py-4">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Loading episodes...</span>
+                      </div>
+                    ) : episodes.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                        {episodes.map((episode, idx) => (
+                          <Button
+                            key={idx}
+                            variant={selectedEpisode?.link === episode.link ? "default" : "outline"}
+                            size="sm"
+                            className="text-xs relative"
+                            onClick={() => handleEpisodeClick(episode)}
+                            disabled={fetchingVideoUrl && selectedEpisode?.link === episode.link}
+                          >
+                            {fetchingVideoUrl && selectedEpisode?.link === episode.link ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Play className="h-3 w-3 mr-1" />
+                            )}
+                            {extractEpisodeNumber(episode.title)}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-4">
+                        No episodes found
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* MDrive Episodes Section */}
+                {selectedQuality && selectedQuality.url.includes('mdrive.today') && mdriveEpisodes.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">
+                      Episodes - {extractQuality(selectedQuality.quality)} - Season {selectedSeason}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                      {mdriveEpisodes.map((episode, idx) => (
+                        <Button
+                          key={idx}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs relative"
+                          onClick={() => {
+                            if (episode.hubCloudLinks.length > 0) {
+                              handleHubCloudLinkClick(episode.hubCloudLinks[0])
+                            }
+                          }}
+                          disabled={episode.hubCloudLinks.length === 0}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Episode {episode.episodeNumber.padStart(2, '0')}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Video URL Dialog */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{selectedEpisode?.title || "Video"}</DialogTitle>
+                  <DialogDescription>
+                    {inferredTitle}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {fetchingVideoUrl ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <p className="text-sm text-muted-foreground">Fetching video links...</p>
+                      </div>
+                    </div>
+                  ) : streamLinks.length > 0 ? (
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium">Available Servers</label>
+                      {streamLinks.map((link, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-muted-foreground">
+                              {link.server} ({link.type.toUpperCase()})
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              value={link.link}
+                              readOnly
+                              className="flex-1 text-xs"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => copyToClipboard(link.link, index)}
+                              className="shrink-0"
+                            >
+                              {copiedIndex === index ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
                           </div>
                         </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <p className="text-muted-foreground">No video links available</p>
-                        </div>
-                      )}
+                      ))}
+                      <div className="pt-2 text-xs text-muted-foreground">
+                        Copy the URL and open it in VLC or your preferred media player
+                      </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-[50vh]">
-                <p className="text-muted-foreground">No details found for this movie.</p>
-              </div>
-            )}
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No video links available</p>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-[50vh]">
+            <p className="text-muted-foreground">No details found for this movie.</p>
           </div>
-        </div>
+        )}
       </div>
-    </SidebarProvider>
+    </div>
   )
 }
