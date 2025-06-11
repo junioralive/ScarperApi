@@ -11,7 +11,17 @@ async function getUserByUid(uid: string) {
   try {
     console.log('Fetching user by uid:', uid)
     const users = await db
-      .select()
+      .select({
+        id: usersTable.id,
+        uid: usersTable.uid,
+        email: usersTable.email,
+        displayName: usersTable.displayName,
+        photoURL: usersTable.photoURL,
+        requestsUsed: usersTable.requestsUsed,
+        requestsLimit: usersTable.requestsLimit,
+        createdAt: usersTable.createdAt,
+        lastLoginAt: usersTable.lastLoginAt,
+      })
       .from(usersTable)
       .where(eq(usersTable.uid, uid))
       .limit(1)
@@ -28,7 +38,6 @@ async function createOrUpdateUser(userData: {
   email: string
   displayName?: string
   photoURL?: string
-  provider?: string
 }) {
   if (!userData.uid || !userData.email) {
     throw new Error('UID and email are required')
@@ -48,10 +57,19 @@ async function createOrUpdateUser(userData: {
           displayName: userData.displayName || existingUser.displayName,
           photoURL: userData.photoURL || existingUser.photoURL,
           lastLoginAt: new Date(),
-          updatedAt: new Date(),
         })
         .where(eq(usersTable.uid, userData.uid))
-        .returning()
+        .returning({
+          id: usersTable.id,
+          uid: usersTable.uid,
+          email: usersTable.email,
+          displayName: usersTable.displayName,
+          photoURL: usersTable.photoURL,
+          requestsUsed: usersTable.requestsUsed,
+          requestsLimit: usersTable.requestsLimit,
+          createdAt: usersTable.createdAt,
+          lastLoginAt: usersTable.lastLoginAt,
+        })
 
       return updatedUser
     } else {
@@ -63,14 +81,22 @@ async function createOrUpdateUser(userData: {
           email: userData.email,
           displayName: userData.displayName || null,
           photoURL: userData.photoURL || null,
-          provider: userData.provider || 'google',
           requestsUsed: 0,
           requestsLimit: 1000,
           createdAt: new Date(),
           lastLoginAt: new Date(),
-          updatedAt: new Date(),
         })
-        .returning()
+        .returning({
+          id: usersTable.id,
+          uid: usersTable.uid,
+          email: usersTable.email,
+          displayName: usersTable.displayName,
+          photoURL: usersTable.photoURL,
+          requestsUsed: usersTable.requestsUsed,
+          requestsLimit: usersTable.requestsLimit,
+          createdAt: usersTable.createdAt,
+          lastLoginAt: usersTable.lastLoginAt,
+        })
 
       return newUser
     }
