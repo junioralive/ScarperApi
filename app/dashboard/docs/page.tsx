@@ -20,6 +20,7 @@ import VidSrcDocs from "@/components/ui/vidsrc-docs";
 import Movies4UDocs from "@/components/ui/movies4u-docs";
 import UHDMoviesDocs from "@/components/ui/uhdmovies-docs";
 import HDHub4uDocs from "@/components/ui/hdhub4u-docs";
+import FilmyFlyDocs from "@/components/ui/filmyfly-docs";
 
 interface ApiEndpoint {
   method: string;
@@ -433,6 +434,12 @@ curl -X GET \\
                   <div className="flex items-center gap-2">
                     <Clapperboard className="h-4 w-4" />
                     HDHub4u API
+                  </div>
+                </SelectItem>
+                <SelectItem value="filmyfly" className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <Film className="h-4 w-4" />
+                    FilmyFly API
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -998,6 +1005,10 @@ curl -X GET \\
       ) : selectedApiType === "hdhub4u" ? (
         <div className="w-full overflow-hidden">
           <HDHub4uDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
+        </div>
+      ) : selectedApiType === "filmyfly" ? (
+        <div className="w-full overflow-hidden">
+          <FilmyFlyDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
         </div>
       ) : (
         <div className="w-full overflow-hidden">
