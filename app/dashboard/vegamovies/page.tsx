@@ -58,20 +58,21 @@ function Navbar({
   onSearchChange: (query: string) => void,
 }) {
   return (
-    <div className="border-b">
+    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center px-4">
         <div className="flex items-center gap-4 flex-1">
           <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold tracking-tight">VegaMovies</h2>
           </div>
           {/* Search Bar */}
           <div className="relative flex-1 max-w-sm md:max-w-md lg:max-w-lg">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search VegaMovies..."
+              placeholder="Search movies & series..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 pr-10 w-full"
+              className="pl-10 pr-10 w-full font-mono text-sm"
             />
             {searchQuery && (
               <button
@@ -110,8 +111,8 @@ function MoviesGrid({ posts, searchQuery, isSearching }: { posts: TransformedMov
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-        <p className="text-lg font-medium mb-2">Searching...</p>
-        <p className="text-muted-foreground">Finding content for "{searchQuery}"</p>
+        <p className="text-lg font-medium mb-2 font-mono">Searching...</p>
+        <p className="text-muted-foreground font-mono text-sm">Finding content for "{searchQuery}"</p>
       </div>
     )
   }
@@ -120,8 +121,8 @@ function MoviesGrid({ posts, searchQuery, isSearching }: { posts: TransformedMov
     return (
       <div className="flex flex-col items-center justify-center h-[50vh] text-center">
         <Search className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium mb-2">No content found</p>
-        <p className="text-muted-foreground">No results for "{searchQuery}". Try different keywords.</p>
+        <p className="text-lg font-medium mb-2 font-mono">No content found</p>
+        <p className="text-muted-foreground font-mono text-sm">No results for "{searchQuery}". Try different keywords.</p>
       </div>
     )
   }
@@ -137,37 +138,37 @@ function MoviesGrid({ posts, searchQuery, isSearching }: { posts: TransformedMov
           <a 
             key={index}
             href={`/dashboard/vegamovies/${id}?url=${encodeURIComponent(post.postUrl)}`}
-            className="transition-transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden"
+            className="transition-all duration-200 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary rounded-lg overflow-hidden group"
           >
-            <div className="overflow-hidden flex flex-col">
-              <div className="aspect-[2/3] relative rounded-lg overflow-hidden">
+            <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-200">
+              <div className="aspect-[2/3] relative rounded-t-lg overflow-hidden">
                 <Image
                   src={post.imageUrl || 'https://placehold.jp/24/363636/ffffff/400x600.png?text=ScreenScape'}
                   alt={post.title}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-200 group-hover:scale-105"
                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
                   quality={80}
                 />
                 {post.contentType === 'series' && (
                   <div className="absolute top-2 left-2">
-                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                      Series
+                    <span className="bg-blue-500/90 text-white text-xs px-2 py-1 rounded font-mono">
+                      SERIES
                     </span>
                   </div>
                 )}
                 {post.isHighQuality && (
                   <div className="absolute top-2 right-2">
-                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="bg-green-500/90 text-white text-xs px-2 py-1 rounded font-mono">
                       4K
                     </span>
                   </div>
                 )}
               </div>
-              <div className="p-2">
-                <h3 className="font-medium text-[10px] sm:text-xs md:text-sm line-clamp-2 mb-1">{post.title}</h3>
-              </div>
-            </div>
+              <CardContent className="p-3">
+                <h3 className="font-mono text-[10px] sm:text-xs md:text-sm line-clamp-2 leading-tight">{post.title}</h3>
+              </CardContent>
+            </Card>
           </a>
         );
       })}
@@ -418,17 +419,17 @@ export default function VegaMoviesDashboard() {
 
   if (!userApiKey && !loading && !error) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen bg-background">
         <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
-          <Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
             <CardContent className="pt-6">
               <div className="text-center py-12">
                 <Key className="w-20 h-20 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">API Key Required</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                <h3 className="text-lg font-semibold mb-2 font-mono">API Key Required</h3>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto font-mono text-sm">
                   You need to create an API key first to access VegaMovies data.
                 </p>
-                <Button asChild>
+                <Button asChild className="font-mono">
                   <a href="/dashboard/api-keys">
                     <Key className="w-4 h-4 mr-2" />
                     Create API Key
@@ -443,7 +444,7 @@ export default function VegaMoviesDashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background">
       <Navbar 
         searchQuery={searchQuery} 
         onSearchChange={setSearchQuery}
@@ -453,16 +454,18 @@ export default function VegaMoviesDashboard() {
         {loading && movies.length === 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mt-6">
             {Array(10).fill(0).map((_, i) => (
-              <div key={i} className="flex flex-col">
-                <div className="aspect-[2/3] bg-muted animate-pulse rounded-lg" />
-                <div className="h-2 sm:h-3 md:h-4 bg-muted animate-pulse rounded w-3/4 mt-1 sm:mt-2 mx-auto" />
-              </div>
+              <Card key={i} className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <div className="aspect-[2/3] bg-muted animate-pulse rounded-t-lg" />
+                <CardContent className="p-3">
+                  <div className="h-2 sm:h-3 md:h-4 bg-muted animate-pulse rounded w-3/4" />
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-            <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Retry</Button>
+            <p className="text-destructive mb-4 font-mono text-sm">{error}</p>
+            <Button onClick={() => window.location.reload()} className="font-mono">Retry</Button>
           </div>
         ) : (
           <>
@@ -474,7 +477,7 @@ export default function VegaMoviesDashboard() {
                   onClick={loadMore}
                   disabled={loading}
                   variant="outline"
-                  className="min-w-[200px]"
+                  className="min-w-[200px] font-mono"
                 >
                   {loading ? (
                     <>

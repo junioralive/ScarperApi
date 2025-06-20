@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Play, Key, Code2, ExternalLink, Home, Search, Film, Video, FileVideo } from "lucide-react";
+import { Copy, Play, Key, Code2, ExternalLink, Home, Search, Film, Video, FileVideo, Clapperboard } from "lucide-react";
 import { toast } from "sonner";
 import MoviesDocs from "@/components/ui/movies-docs";
 import AllMoviesDocs from "@/components/ui/allmovies-docs";
@@ -17,6 +17,7 @@ import TenBitClubDocs from "@/components/ui/10bitclub-docs";
 import KMmoviesDocs from "@/components/ui/kmmovies-docs";
 import DesireMoviesDocs from "@/components/ui/desiremovies-docs";
 import VidSrcDocs from "@/components/ui/vidsrc-docs";
+import Movies4UDocs from "@/components/ui/movies4u-docs";
 
 interface ApiEndpoint {
   method: string;
@@ -394,6 +395,12 @@ curl -X GET \\
                   <div className="flex items-center gap-2">
                     <Film className="h-4 w-4" />
                     KMmovies API
+                  </div>
+                </SelectItem>
+                <SelectItem value="movies4u" className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <Clapperboard className="h-4 w-4" />
+                    Movies4U API
                   </div>
                 </SelectItem>
                 <SelectItem value="gyanigurus" className="text-sm">
@@ -953,6 +960,10 @@ curl -X GET \\
       ) : selectedApiType === "kmmovies" ? (
         <div className="w-full overflow-hidden">
           <KMmoviesDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
+        </div>
+      ) : selectedApiType === "movies4u" ? (
+        <div className="w-full overflow-hidden">
+          <Movies4UDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
         </div>
       ) : selectedApiType === "gyanigurus" ? (
         <div className="w-full overflow-hidden">
