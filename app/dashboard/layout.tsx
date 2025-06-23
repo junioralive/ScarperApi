@@ -100,21 +100,19 @@ const navItems = [
 
 function AppSidebar() {
   const pathname = usePathname()
-  const { user } = useAuth()
   
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.photoURL || "/avatars/01.png"} alt={user?.email} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {user?.email?.charAt(0).toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <span className="font-medium group-data-[collapsible=icon]:hidden">
-            {user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || "User"}
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">S</span>
+            </div>
+            <span className="font-bold group-data-[collapsible=icon]:hidden">
+              ScreenScape
+            </span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -148,7 +146,19 @@ function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
-        <UserMenu />
+        <div className="p-2 text-center">
+          <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+            Created and managed by
+          </p>
+          <p className="text-xs font-medium text-primary group-data-[collapsible=icon]:hidden">
+            ScreenScape
+          </p>
+          <div className="group-data-[collapsible=icon]:block hidden">
+            <div className="h-6 w-6 mx-auto rounded bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-xs">S</span>
+            </div>
+          </div>
+        </div>
       </SidebarFooter>
     </Sidebar>
   )
@@ -166,25 +176,21 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start gap-2 h-12 group-data-[state=collapsed]:justify-center">
+        <Button variant="ghost" className="h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-           <AvatarImage src={user?.photoURL || "/avatars/01.png"} alt={user?.email} />
-            <AvatarFallback>
+            <AvatarImage src={user?.photoURL || "/avatars/01.png"} alt={user?.email} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
               {user?.email?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="grid flex-1 text-left text-sm leading-tight data-[state=collapsed]:hidden">
-            <span className="truncate font-semibold">{user?.displayName}</span>
-            <span className="truncate text-xs text-muted-foreground">
-              {user?.email}
-            </span>
-          </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.email}</p>
+            <p className="text-sm font-medium leading-none">
+              {user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || "User"}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user?.email}
             </p>
@@ -224,6 +230,7 @@ export function DashboardNavbar({ title, children }: { title?: string; children?
         <div className="flex items-center gap-2 ml-auto">
           <GlobalSearch />
           <ThemeToggle />
+          <UserMenu />
         </div>
       </div>
     </header>

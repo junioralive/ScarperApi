@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/auth-context";
-import { DevToolsProtection } from "@/components/dev-tools-protection";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -82,79 +81,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Additional protection script that runs before React
-              (function() {
-                // Disable right-click immediately
-                document.addEventListener('contextmenu', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-                
-                // Disable key combinations immediately
-                document.addEventListener('keydown', function(e) {
-                  // F12
-                  if (e.keyCode === 123) {
-                    e.preventDefault();
-                    window.location.href = 'about:blank';
-                    return false;
-                  }
-                  
-                  // Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J
-                  if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 67 || e.keyCode === 74)) {
-                    e.preventDefault();
-                    window.location.href = 'about:blank';
-                    return false;
-                  }
-                  
-                  // Ctrl+U
-                  if (e.ctrlKey && e.keyCode === 85) {
-                    e.preventDefault();
-                    window.location.href = 'about:blank';
-                    return false;
-                  }
-                });
-                
-                // Console detection
-                var devtools = {open: false, orientation: null};
-                var threshold = 160;
-                
-                setInterval(function() {
-                  if (window.outerHeight - window.innerHeight > threshold || 
-                      window.outerWidth - window.innerWidth > threshold) {
-                    if (!devtools.open) {
-                      devtools.open = true;
-                      window.location.href = 'about:blank';
-                    }
-                  } else {
-                    devtools.open = false;
-                  }
-                }, 500);
-                
-                // Disable text selection
-                document.onselectstart = function() { return false; };
-                document.ondragstart = function() { return false; };
-                
-                // Clear console periodically
-                setInterval(function() {
-                  console.clear();
-                }, 1000);
-              })();
-            `,
-          }}
-        />
-      </head>
       <body
         className={`${geist.variable} ${geistMono.variable} antialiased`}
-        style={{
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none'
-        }}
       >
         <ThemeProvider
           attribute="class"
@@ -163,7 +91,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <DevToolsProtection />
             <div className="flex min-h-screen flex-col">
               <div className="flex-1">{children}</div>
             </div>
@@ -174,3 +101,4 @@ export default function RootLayout({
     </html>
   );
 }
+                
