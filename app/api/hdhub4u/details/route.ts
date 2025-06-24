@@ -44,12 +44,20 @@ function extractEpisodeNumber(text: string): number {
 }
 
 function extractQualityAndSize(title: string): { quality: string; size: string } {
-  // Extract quality (480p, 720p, 1080p, etc.)
-  const qualityMatch = title.match(/(\d+p|4K|UHD)/i);
+  // Extract quality (480p, 720p, 1080p, etc.) - enhanced patterns
+  const qualityMatch = title.match(/(\d+p|4K|UHD|HQ-Rip|HQ)/i);
   const quality = qualityMatch ? qualityMatch[1] : 'Unknown';
   
-  // Extract size ([100MB], [300MB], [600MB], etc.)
-  const sizeMatch = title.match(/\[([^\]]+(?:MB|GB)[^\]]*)\]/i);
+  // Extract size - enhanced patterns for different formats
+  let sizeMatch = title.match(/\[([^\]]+(?:MB|GB)[^\]]*)\]/i);
+  if (!sizeMatch) {
+    // Try without brackets: 530MB, 1.3GB, etc.
+    sizeMatch = title.match(/(\d+\.?\d*\s*(?:MB|GB))/i);
+  }
+  if (!sizeMatch) {
+    // Try with different bracket styles or spaces
+    sizeMatch = title.match(/(\d+\.?\d*\s*(?:MB|GB))/i);
+  }
   const size = sizeMatch ? sizeMatch[1] : 'Unknown';
   
   return { quality, size };
@@ -83,12 +91,27 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
     const downloads: DownloadLink[] = [];
     const directDownloads: DirectDownloadLink[] = [];
 
-    // Check content type based on what's present
-    const hasEpisodes = $('h4').text().includes('EPISODE') || $('a[href*="techyboy4u.com"]').length > 0;
-    const hasDirectDownloads = $('a[href*="hubdrive.wales"], a[href*="hdstream4u.com"], a[href*="hubstream.art"]').length > 0;
+    // Enhanced content type detection
+    const hasDirectDownloads = $('a[href*="hubdrive.wales"], a[href*="hdstream4u.com"], a[href*="hubstream.art"], a[href*="hubcdn.fans"]').length > 0;
+    
+    // Enhanced episode detection - look for both EPISODE and EPiSODE patterns
+    const hasEpisodeLinks = $('h4').toArray().some(element => {
+      const $heading = $(element);
+      const headingText = $heading.text().trim();
+      return headingText.includes('EPISODE') && $heading.find('a[href*="techyboy4u.com"]').length > 0;
+    }) || $('h4 span, h4 strong').toArray().some(element => {
+      const $span = $(element);
+      const spanText = $span.text().trim();
+      return spanText.includes('EPiSODE') && spanText.match(/EPiSODE\s*\d+/i);
+    });
 
-    if (hasEpisodes) {
-      // Handle TV series logic (existing code)
+    console.log('Content detection:', { hasDirectDownloads, hasEpisodeLinks });
+
+    // Process episodes if they exist
+    if (hasEpisodeLinks) {
+      console.log('Processing episodes...');
+      
+      // Method 1: Extract from traditional EPISODE h4 links
       $('h4').each((_, element) => {
         const $heading = $(element);
         const headingText = $heading.text().trim();
@@ -103,7 +126,7 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
             const linkText = $link.text().trim();
             const linkHref = $link.attr('href');
             
-            if (linkText.includes('EPISODE') && linkHref) {
+            if (linkText.includes('EPISODE') && linkHref && linkHref.includes('techyboy4u.com')) {
               episodeText = linkText;
               episodeUrl = linkHref;
             }
@@ -123,32 +146,65 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
         }
       });
 
+      // Method 2: Extract from EPiSODE span patterns with following links
+      $('h4 span, h4 strong').each((_, element) => {
+        const $span = $(element);
+        const spanText = $span.text().trim();
+        
+        if (spanText.includes('EPiSODE')) {
+          const episodeMatch = spanText.match(/EPiSODE\s*(\d+)/i);
+          if (episodeMatch) {
+            const episodeNumber = parseInt(episodeMatch[1]);
+            const episodeText = `Episode ${episodeNumber}`;
+            
+            // Look for streaming links in the following h4 elements
+            let $nextH4 = $span.closest('h4').next('h4');
+            let streamUrl = '';
+            
+            // Check multiple following h4 elements for WATCH links
+            for (let i = 0; i < 3 && $nextH4.length; i++) {
+              const watchLink = $nextH4.find('a[href*="hdstream4u.com"]').first();
+              if (watchLink.length) {
+                streamUrl = watchLink.attr('href') || '';
+                break;
+              }
+              $nextH4 = $nextH4.next('h4');
+            }
+            
+            if (streamUrl) {
+              episodes.push({
+                episode: episodeText,
+                episodeNumber,
+                episodeUrl: streamUrl
+              });
+            }
+          }
+        }
+      });
+
       episodes.sort((a, b) => a.episodeNumber - b.episodeNumber);
+      console.log(`Extracted ${episodes.length} episodes`);
+    }
+
+    // Process direct downloads if they exist
+    if (hasDirectDownloads) {
+      console.log('Processing direct downloads...');
       
-      console.log(`Extracted ${episodes.length} episodes from HDHub4u details`);
-      
-      return {
-        title,
-        type: 'series',
-        episodes
-      };
-      
-    } else if (hasDirectDownloads) {
-      // Handle direct download links (hubdrive, hdstream4u, etc.)
+      // Method 1: Extract from h3, h4 elements
       $('h3, h4').each((_, element) => {
         const $heading = $(element);
         const $link = $heading.find('a').first();
         const linkText = $link.text().trim();
         const linkHref = $link.attr('href');
         
-        if (linkHref && (linkText.includes('p ') || linkText.includes('MB') || linkText.includes('GB'))) {
+        if (linkHref && (linkText.includes('p ') || linkText.includes('MB') || linkText.includes('GB') || linkText.includes('p⚡') || linkText.includes('HQ'))) {
           const { quality, size } = extractQualityAndSize(linkText);
           
           // Check for watch/player links in the same or next element
           let watchUrl = '';
           let playerUrl = '';
           
-          // Look for watch/player links in the next h4
+          // Look for watch/player links in the next h4 or within the same element
           const $nextH4 = $heading.next('h4');
           if ($nextH4.length) {
             $nextH4.find('a').each((_, watchLink) => {
@@ -164,6 +220,19 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
             });
           }
           
+          // Also check for multiple links in the same element (WATCH | PLAYER-2 pattern)
+          $heading.find('a').each((_, watchLink) => {
+            const $watchLink = $(watchLink);
+            const watchText = $watchLink.text().trim();
+            const watchHref = $watchLink.attr('href');
+            
+            if (watchText.includes('WATCH') && watchHref) {
+              watchUrl = watchHref;
+            } else if (watchText.includes('PLAYER') && watchHref) {
+              playerUrl = watchHref;
+            }
+          });
+          
           directDownloads.push({
             title: linkText,
             quality,
@@ -175,16 +244,149 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
         }
       });
 
-      console.log(`Extracted ${directDownloads.length} direct download links from HDHub4u details`);
+      // Method 2: Deep extraction from ALL anchor tags regardless of nesting
+      $('a').each((_, element) => {
+        const $link = $(element);
+        const linkText = $link.text().trim();
+        const linkHref = $link.attr('href');
+        
+        // Enhanced pattern matching for various formats
+        const hasQualityPattern = linkText.match(/\d+p/) || 
+                                 linkText.includes('HQ-Rip') || 
+                                 linkText.includes('HQ ') ||
+                                 linkText.includes('HEVC') ||
+                                 linkText.includes('x264') ||
+                                 linkText.includes('x265');
+        
+        const hasSizePattern = linkText.includes('MB') || 
+                              linkText.includes('GB') || 
+                              linkText.match(/\[\d+\.?\d*\s*[MG]B\]/);
+        
+        const hasSpecialPattern = linkText.includes('SAMPLE') || 
+                                 linkText.includes('CLiMAX') || 
+                                 linkText.includes('CLIMAX');
+        
+        if (linkHref && linkText && 
+            (hasQualityPattern || hasSizePattern || hasSpecialPattern) &&
+            (linkHref.includes('hubdrive.wales') || 
+             linkHref.includes('hubcdn.fans') || 
+             linkHref.includes('techyboy4u.com'))) {
+          
+          const { quality, size } = extractQualityAndSize(linkText);
+          
+          // Check if this link already exists
+          const exists = directDownloads.some(d => d.downloadUrl === linkHref);
+          if (!exists) {
+            directDownloads.push({
+              title: linkText,
+              quality: quality === 'Unknown' && hasSpecialPattern ? 'Special' : quality,
+              size,
+              downloadUrl: linkHref
+            });
+          }
+        }
+      });
+
+      // Method 3: Extract watch/player links and associate them
+      const watchPlayerLinks: { [key: string]: { watchUrl?: string; playerUrl?: string } } = {};
       
+      $('a').each((_, element) => {
+        const $link = $(element);
+        const linkText = $link.text().trim();
+        const linkHref = $link.attr('href');
+        
+        if (linkHref && linkText && 
+            (linkText.includes('WATCH') || linkText.includes('PLAYER')) &&
+            (linkHref.includes('hdstream4u.com') || linkHref.includes('hubstream.art'))) {
+          
+          // Try to find the closest h4 parent to associate with download links
+          const $parentH4 = $link.closest('h4');
+          if ($parentH4.length) {
+            const parentKey = $parentH4.index();
+            if (!watchPlayerLinks[parentKey]) {
+              watchPlayerLinks[parentKey] = {};
+            }
+            
+            if (linkText.includes('WATCH')) {
+              watchPlayerLinks[parentKey].watchUrl = linkHref;
+            } else if (linkText.includes('PLAYER')) {
+              watchPlayerLinks[parentKey].playerUrl = linkHref;
+            }
+          }
+        }
+      });
+      
+      // Associate watch/player links with download links
+      Object.values(watchPlayerLinks).forEach((links) => {
+        if (directDownloads.length > 0) {
+          const lastDownload = directDownloads[directDownloads.length - 1];
+          if (links.watchUrl && !lastDownload.watchUrl) {
+            lastDownload.watchUrl = links.watchUrl;
+          }
+          if (links.playerUrl && !lastDownload.playerUrl) {
+            lastDownload.playerUrl = links.playerUrl;
+          }
+        }
+      });
+
+      // Method 4: Extract from span elements within links (for styled text)
+      $('a span, a em').each((_, element) => {
+        const $span = $(element);
+        const $link = $span.closest('a');
+        const linkText = $span.text().trim() || $link.text().trim();
+        const linkHref = $link.attr('href');
+        
+        if (linkHref && linkText && 
+            (linkText.match(/\d+p/) || linkText.includes('MB') || linkText.includes('GB') || 
+             linkText.includes('SAMPLE') || linkText.includes('CLiMAX') || linkText.includes('CLIMAX')) &&
+            (linkHref.includes('hubdrive.wales') || 
+             linkHref.includes('hubcdn.fans') || 
+             linkHref.includes('techyboy4u.com'))) {
+          
+          const { quality, size } = extractQualityAndSize(linkText);
+          
+          const exists = directDownloads.some(d => d.downloadUrl === linkHref);
+          if (!exists) {
+            directDownloads.push({
+              title: linkText,
+              quality: quality === 'Unknown' && (linkText.includes('SAMPLE') || linkText.includes('CLiMAX')) ? 'Special' : quality,
+              size,
+              downloadUrl: linkHref
+            });
+          }
+        }
+      });
+
+      console.log(`Extracted ${directDownloads.length} direct download links`);
+    }
+
+    // Determine content type and return appropriate structure
+    if (episodes.length > 0 && directDownloads.length > 0) {
+      // Both episodes and direct downloads - treat as series with downloads
+      return {
+        title,
+        type: 'series',
+        episodes,
+        directDownloads
+      };
+    } else if (episodes.length > 0) {
+      // Only episodes
+      return {
+        title,
+        type: 'series',
+        episodes
+      };
+    } else if (directDownloads.length > 0) {
+      // Only direct downloads
       return {
         title,
         type: 'movie_direct',
         directDownloads
       };
-      
     } else {
-      // Extract movie download links (existing logic)
+      // Extract movie download links (existing logic with enhancements)
+      
+      // Enhanced extraction for movie downloads
       $('h3, h4, .download-section, .entry-content p').each((_, element) => {
         const $element = $(element);
         const text = $element.text().trim();
@@ -208,12 +410,16 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
         }
       });
 
-      $('.entry-content a, .download-links a').each((_, element) => {
+      // Enhanced extraction for any anchor tags with download patterns
+      $('a').each((_, element) => {
         const $link = $(element);
         const linkText = $link.text().trim();
         const linkHref = $link.attr('href');
         
-        if (linkHref && (linkText.includes('Download') || linkText.includes('480p') || linkText.includes('720p') || linkText.includes('1080p'))) {
+        if (linkHref && linkText && 
+            (linkText.includes('Download') || linkText.match(/\d+p/) || linkText.includes('MB') || linkText.includes('GB')) &&
+            (linkHref.includes('hubdrive.wales') || linkHref.includes('hubcdn.fans') || linkHref.includes('techyboy4u.com'))) {
+          
           const { quality, size } = extractQualityAndSize(linkText);
           
           const exists = downloads.some(d => d.downloadUrl === linkHref);
@@ -228,7 +434,7 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
         }
       });
 
-      console.log(`Extracted ${downloads.length} download links from HDHub4u details`);
+      console.log(`Extracted ${downloads.length} download links`);
       
       return {
         title,
@@ -291,7 +497,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HDHub4uDet
     }
 
     const hasContent = details.type === 'series' 
-      ? details.episodes && details.episodes.length > 0
+      ? (details.episodes && details.episodes.length > 0) || (details.directDownloads && details.directDownloads.length > 0)
       : details.type === 'movie_direct'
       ? details.directDownloads && details.directDownloads.length > 0
       : details.downloads && details.downloads.length > 0;
