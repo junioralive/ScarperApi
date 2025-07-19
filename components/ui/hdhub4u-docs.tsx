@@ -1143,7 +1143,7 @@ echo '{
                   </CardHeader>
                   <CardContent>
                     <code className="text-xs bg-muted p-2 rounded block">
-                      https://hdhub4u.gratis/loki-season-1-episode-links/
+                      https://hdhub4u.family/loki-season-1-episode-links/
                     </code>
                     <p className="text-xs text-muted-foreground mt-2">
                       Contains episode links (for series) or direct download links (for movies)

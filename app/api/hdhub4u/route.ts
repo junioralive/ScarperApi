@@ -138,7 +138,7 @@ function generateIdFromUrl(url: string): string {
 // Main function to scrape HDHub4u search results
 async function scrapeHDHub4uSearch(searchQuery: string): Promise<HDHub4uItem[]> {
   try {
-    const searchUrl = `https://hdhub4u.gratis/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://hdhub4u.family/?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching HDHub4u with query: ${searchQuery}`);
     console.log(`Search URL: ${searchUrl}`);
@@ -149,7 +149,7 @@ async function scrapeHDHub4uSearch(searchQuery: string): Promise<HDHub4uItem[]> 
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://hdhub4u.gratis/',
+        'Referer': 'https://hdhub4u.family/',
       },
       next: { revalidate: 0 }
     });
@@ -231,8 +231,8 @@ async function scrapeHDHub4uSearch(searchQuery: string): Promise<HDHub4uItem[]> 
 async function scrapeHDHub4uHomepage(page: number = 1): Promise<HDHub4uItem[]> {
   try {
     const url = page === 1 
-      ? 'https://hdhub4u.gratis/' 
-      : `https://hdhub4u.gratis/page/${page}/`;
+      ? 'https://hdhub4u.family/' 
+      : `https://hdhub4u.family/page/${page}/`;
     
     console.log(`Fetching HDHub4u homepage content from: ${url}`);
 
@@ -242,7 +242,7 @@ async function scrapeHDHub4uHomepage(page: number = 1): Promise<HDHub4uItem[]> {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://hdhub4u.gratis/',
+        'Referer': 'https://hdhub4u.family/',
       },
       next: { revalidate: 0 }
     });

@@ -75,7 +75,7 @@ async function scrapeHDHub4uDetails(url: string): Promise<{ title: string; type:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': 'https://hdhub4u.gratis/',
+        'Referer': 'https://hdhub4u.family/',
       },
     });
 
