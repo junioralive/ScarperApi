@@ -63,7 +63,7 @@ const moviesApiCategories: ApiCategory[] = [
         endpoint: "/api/moviesdrive/episode",
         description: "Get movie details and download links",
         params: [
-          { name: "url", type: "string", required: true, description: "Movie URL from posts response (e.g., https://moviesdrive.zip/movie-title/)" }
+          { name: "url", type: "string", required: true, description: "Movie URL from posts response (e.g., https://moviesdrive.channel/movie-title/)" }
         ]
       }
     ]
@@ -226,7 +226,7 @@ export default function MoviesDocs({ apiKey, onApiKeyChange }: MoviesDocsProps) 
           return (
             <>
               <span className="text-[#6A9955]">// Get movie details and download links</span>{'\n'}
-              <span className="text-[#569CD6]">const</span> <span className="text-[#9CDCFE]">movieUrl</span> <span className="text-[#D4D4D4]">=</span> <span className="text-[#CE9178]">"https://moviesdrive.zip/avengers-endgame/"</span><span className="text-[#D4D4D4]">;</span>{'\n'}
+              <span className="text-[#569CD6]">const</span> <span className="text-[#9CDCFE]">movieUrl</span> <span className="text-[#D4D4D4]">=</span> <span className="text-[#CE9178]">"https://moviesdrive.channel/avengers-endgame/"</span><span className="text-[#D4D4D4]">;</span>{'\n'}
               <span className="text-[#569CD6]">const</span> <span className="text-[#9CDCFE]">response</span> <span className="text-[#D4D4D4]">=</span> <span className="text-[#569CD6]">await</span> <span className="text-[#DCDCAA]">fetch</span><span className="text-[#D4D4D4]">(</span><span className="text-[#CE9178]">"{baseUrl}/api/moviesdrive/episode?url="</span> <span className="text-[#D4D4D4]">+</span> <span className="text-[#DCDCAA]">encodeURIComponent</span><span className="text-[#D4D4D4]">(</span><span className="text-[#9CDCFE]">movieUrl</span><span className="text-[#D4D4D4]">), {`{`}</span>{'\n'}
               <span className="text-[#D4D4D4]">  headers: {`{`}</span>{'\n'}
               <span className="text-[#D4D4D4]">    </span><span className="text-[#CE9178]">"x-api-key"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"YOUR_API_KEY"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
@@ -301,7 +301,7 @@ print(data["posts"])  # Search results`;
 import requests
 from urllib.parse import quote
 
-movie_url = "https://moviesdrive.zip/avengers-endgame/"
+movie_url = "https://moviesdrive.channel/avengers-endgame/"
 url = f"${baseUrl}/api/moviesdrive/episode?url={quote(movie_url)}"
 headers = {
     "x-api-key": "YOUR_API_KEY",
@@ -742,9 +742,9 @@ curl -X GET \\
                             <span className="text-[#D4D4D4]">  </span><span className="text-[#9CDCFE]">"count"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#B5CEA8]">20</span><span className="text-[#D4D4D4]">,</span>{'\n'}
                             <span className="text-[#D4D4D4]">  </span><span className="text-[#9CDCFE]">"posts"</span><span className="text-[#D4D4D4]">: [</span>{'\n'}
                             <span className="text-[#D4D4D4]">    {`{`}</span>{'\n'}
-                            <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"imageUrl"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.zip/poster.jpg"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
+                            <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"imageUrl"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.channel/poster.jpg"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
                             <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"title"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"Avengers: Endgame (2019)"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
-                            <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"postUrl"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.zip/avengers-endgame/"</span>{'\n'}
+                            <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"postUrl"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.channel/avengers-endgame/"</span>{'\n'}
                             <span className="text-[#D4D4D4]">    {`}`}</span>{'\n'}
                             <span className="text-[#D4D4D4]">  ],</span>{'\n'}
                             <span className="text-[#D4D4D4]">  </span><span className="text-[#9CDCFE]">"page"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#B5CEA8]">1</span><span className="text-[#D4D4D4]">,</span>{'\n'}
@@ -789,7 +789,7 @@ curl -X GET \\
                             <span className="text-[#D4D4D4]">{`{`}</span>{'\n'}
                             <span className="text-[#D4D4D4]">  </span><span className="text-[#9CDCFE]">"success"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#569CD6]">true</span><span className="text-[#D4D4D4]">,</span>{'\n'}
                             <span className="text-[#D4D4D4]">  </span><span className="text-[#9CDCFE]">"data"</span><span className="text-[#D4D4D4]">: {`{`}</span>{'\n'}
-                            <span className="text-[#D4D4D4]">    </span><span className="text-[#9CDCFE]">"mainImage"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.zip/poster.jpg"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
+                            <span className="text-[#D4D4D4]">    </span><span className="text-[#9CDCFE]">"mainImage"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://moviesdrive.channel/poster.jpg"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
                             <span className="text-[#D4D4D4]">    </span><span className="text-[#9CDCFE]">"imdbRating"</span><span className="text-[#D4D4D4]">: {`{`}</span>{'\n'}
                             <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"url"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"https://imdb.com/title/tt4154796/"</span><span className="text-[#D4D4D4]">,</span>{'\n'}
                             <span className="text-[#D4D4D4]">      </span><span className="text-[#9CDCFE]">"text"</span><span className="text-[#D4D4D4]">:</span> <span className="text-[#CE9178]">"8.4/10"</span>{'\n'}

@@ -319,7 +319,7 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
       try {
         setLoading(true)
         // Get the full URL for this movie
-        const fullUrl = `https://moviesdrive.zip/${id}/`
+        const fullUrl = `https://moviesdrive.channel/${id}/`
         
         // Fetch movie details using our API
         const res = await fetch(`/api/moviesdrive/episode?url=${encodeURIComponent(fullUrl)}`, {
