@@ -67,7 +67,7 @@ const kmMoviesApiCategories: ApiCategory[] = [
         endpoint: "/api/kmmovies/details",
         description: "Get detailed movie information including storyline, cast, director, and download links",
         params: [
-          { name: "url", type: "string", required: true, description: "Full movie URL from kmmovies.mobi (e.g., https://w1.kmmovies.buzz/movie-name/)" }
+          { name: "url", type: "string", required: true, description: "Full movie URL from kmmovies.mobi (e.g., https://kmmovies.art/movie-name/)" }
         ]
       }
     ]
@@ -291,7 +291,7 @@ data.posts.forEach(post => {
 });`;
         } else if (selectedCategory.name === "Movie Details") {
           return `// Get detailed movie information
-const movieUrl = "https://w1.kmmovies.buzz/spider-man-no-way-home-2021/";
+const movieUrl = "https://kmmovies.art/spider-man-no-way-home-2021/";
 const response = await fetch(\`${baseUrl}/api/kmmovies/details?url=\${encodeURIComponent(movieUrl)}\`, {
   headers: {
     "x-api-key": "YOUR_API_KEY",
@@ -380,7 +380,7 @@ for post in data["posts"]:
 import requests
 from urllib.parse import quote
 
-movie_url = "https://w1.kmmovies.buzz/spider-man-no-way-home-2021/"
+movie_url = "https://kmmovies.art/spider-man-no-way-home-2021/"
 url = f"${baseUrl}/api/kmmovies/details?url={quote(movie_url)}"
 headers = {
     "x-api-key": "YOUR_API_KEY",
@@ -483,17 +483,17 @@ curl -X GET \\
   "posts": [
     {
       "id": "post-12345",
-      "imageUrl": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man.jpg",
+      "imageUrl": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man.jpg",
       "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie",
-      "postUrl": "https://w1.kmmovies.buzz/spider-man-no-way-home-2021/",
+      "postUrl": "https://kmmovies.art/spider-man-no-way-home-2021/",
       "isSeries": false,
       "type": "movie"
     },
     {
       "id": "post-12346",
-      "imageUrl": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/stranger-things.jpg",
+      "imageUrl": "https://kmmovies.art/wp-content/uploads/2024/01/stranger-things.jpg",
       "title": "Stranger Things S04 (2022) Complete Web Series",
-      "postUrl": "https://w1.kmmovies.buzz/stranger-things-s04-2022/",
+      "postUrl": "https://kmmovies.art/stranger-things-s04-2022/",
       "isSeries": true,
       "type": "series"
     }
@@ -512,25 +512,25 @@ curl -X GET \\
   "posts": [
     {
       "id": "post-12345",
-      "imageUrl": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man-nwh.jpg",
+      "imageUrl": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man-nwh.jpg",
       "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie",
-      "postUrl": "https://w1.kmmovies.buzz/spider-man-no-way-home-2021/",
+      "postUrl": "https://kmmovies.art/spider-man-no-way-home-2021/",
       "isSeries": false,
       "type": "movie"
     },
     {
       "id": "post-12346",
-      "imageUrl": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man-ffh.jpg",
+      "imageUrl": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man-ffh.jpg",
       "title": "Spider-Man: Far From Home (2019) Hindi Dubbed",
-      "postUrl": "https://w1.kmmovies.buzz/spider-man-far-from-home-2019/",
+      "postUrl": "https://kmmovies.art/spider-man-far-from-home-2019/",
       "isSeries": false,
       "type": "movie"
     },
     {
       "id": "post-12347",
-      "imageUrl": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man-animated.jpg",
+      "imageUrl": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man-animated.jpg",
       "title": "Spider-Man: Into the Spider-Verse (2018) Animation Movie",
-      "postUrl": "https://w1.kmmovies.buzz/spider-man-into-the-spider-verse-2018/",
+      "postUrl": "https://kmmovies.art/spider-man-into-the-spider-verse-2018/",
       "isSeries": false,
       "type": "movie"
     }
@@ -547,7 +547,7 @@ curl -X GET \\
   "success": true,
   "data": {
     "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie",
-    "mainImage": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man-nwh-poster.jpg",
+    "mainImage": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man-nwh-poster.jpg",
     "storyline": "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.",
     "releaseYear": "2021",
     "director": "Jon Watts",
@@ -579,12 +579,12 @@ curl -X GET \\
         "text": "FAST DOWNLOAD"
       }
     ],
-    "screenshot": "https://w1.kmmovies.buzz/wp-content/uploads/2024/01/spider-man-screenshot.jpg",
+    "screenshot": "https://kmmovies.art/wp-content/uploads/2024/01/spider-man-screenshot.jpg",
     "imdbRating": {
       "text": "8.2/10",
       "url": "https://www.imdb.com/"
     },
-    "sourceUrl": "https://w1.kmmovies.buzz/spider-man-no-way-home-2021/"
+    "sourceUrl": "https://kmmovies.art/spider-man-no-way-home-2021/"
   },
   "website": "KMmovies",
   "remainingRequests": 93

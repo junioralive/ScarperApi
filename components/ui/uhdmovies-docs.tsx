@@ -66,7 +66,7 @@ const uhdMoviesApiCategories: ApiCategory[] = [
         endpoint: "/api/uhdmovies/stream",
         description: "Get detailed movie/series information with episode structure and download links",
         params: [
-          { name: "stream", type: "string", required: true, description: "Full movie URL from UHDMovies (e.g., https://uhdmovies.email/download-loki-season-2-hindi-1080p-2160p/)" }
+          { name: "stream", type: "string", required: true, description: "Full movie URL from UHDMovies (e.g., https://uhdmovies.tube/download-loki-season-2-hindi-1080p-2160p/)" }
         ]
       }
     ]
@@ -300,7 +300,7 @@ data.data.movies.forEach(movie => {
 });`;
         } else if (selectedCategory.name === "Stream Data") {
           return `// Get detailed movie/series information with episodes
-const movieUrl = "https://uhdmovies.email/download-loki-season-2-hindi-1080p-2160p/";
+const movieUrl = "https://uhdmovies.tube/download-loki-season-2-hindi-1080p-2160p/";
 const response = await fetch(\`${baseUrl}/api/uhdmovies/stream?stream=\${encodeURIComponent(movieUrl)}\`, {
   headers: {
     "x-api-key": "YOUR_API_KEY",
@@ -419,7 +419,7 @@ print(data["data"]["movies"])  # Search results`;
 import requests
 from urllib.parse import quote
 
-movie_url = "https://uhdmovies.email/download-loki-season-2-hindi-1080p-2160p/"
+movie_url = "https://uhdmovies.tube/download-loki-season-2-hindi-1080p-2160p/"
 url = f"${baseUrl}/api/uhdmovies/stream?stream={quote(movie_url)}"
 headers = {
     "x-api-key": "YOUR_API_KEY",
@@ -534,8 +534,8 @@ curl -X GET \\
       {
         "id": "download-loki-season-2-hindi-1080p-2160p",
         "title": "Download Loki (Season 01-02) [S02E06 Added] {Hindi-English} 1080p || 2160p || WeB-DL Esubs",
-        "url": "https://uhdmovies.email/download-loki-season-2-hindi-1080p-2160p/",
-        "image": "https://uhdmovies.email/wp-content/uploads/2023/11/loki-season-2.jpg",
+        "url": "https://uhdmovies.tube/download-loki-season-2-hindi-1080p-2160p/",
+        "image": "https://uhdmovies.tube/wp-content/uploads/2023/11/loki-season-2.jpg",
         "imageAlt": "Loki Season 2",
         "category": "TV Series",
         "quality": ["1080p", "2160p", "4K", "HEVC", "10-Bit"],
@@ -548,8 +548,8 @@ curl -X GET \\
       {
         "id": "download-spider-man-no-way-home-2021",
         "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie [Dual Audio] WEB-HDRip 480p 720p 1080p",
-        "url": "https://uhdmovies.email/download-spider-man-no-way-home-2021/",
-        "image": "https://uhdmovies.email/wp-content/uploads/2022/01/spider-man-nwh.jpg",
+        "url": "https://uhdmovies.tube/download-spider-man-no-way-home-2021/",
+        "image": "https://uhdmovies.tube/wp-content/uploads/2022/01/spider-man-nwh.jpg",
         "imageAlt": "Spider-Man No Way Home",
         "category": "Movie",
         "quality": ["480p", "720p", "1080p", "HEVC"],
@@ -576,8 +576,8 @@ curl -X GET \\
       {
         "id": "download-loki-season-2-hindi-1080p-2160p",
         "title": "Download Loki (Season 01-02) [S02E06 Added] {Hindi-English} 1080p || 2160p || WeB-DL Esubs",
-        "url": "https://uhdmovies.email/download-loki-season-2-hindi-1080p-2160p/",
-        "image": "https://uhdmovies.email/wp-content/uploads/2023/11/loki-season-2.jpg",
+        "url": "https://uhdmovies.tube/download-loki-season-2-hindi-1080p-2160p/",
+        "image": "https://uhdmovies.tube/wp-content/uploads/2023/11/loki-season-2.jpg",
         "imageAlt": "Loki Season 2",
         "category": "TV Series",
         "quality": ["1080p", "2160p", "4K", "HEVC", "10-Bit"],
@@ -590,8 +590,8 @@ curl -X GET \\
       {
         "id": "download-loki-season-1-hindi-1080p-2160p",
         "title": "Download Loki Season 1 {Hindi-English} 1080p || 2160p || WeB-DL Esubs",
-        "url": "https://uhdmovies.email/download-loki-season-1-hindi-1080p-2160p/",
-        "image": "https://uhdmovies.email/wp-content/uploads/2021/07/loki-season-1.jpg",
+        "url": "https://uhdmovies.tube/download-loki-season-1-hindi-1080p-2160p/",
+        "image": "https://uhdmovies.tube/wp-content/uploads/2021/07/loki-season-1.jpg",
         "imageAlt": "Loki Season 1",
         "category": "TV Series",
         "quality": ["1080p", "2160p", "4K", "HEVC"],
@@ -616,7 +616,7 @@ curl -X GET \\
   "data": {
     "title": "Download Loki (Season 01-02) [S02E06 Added] {Hindi-English} 1080p || 2160p || WeB-DL Esubs",
     "plot": "After stealing the Tesseract, Loki comes into contact with a mysterious organization that gives him an ominous ultimatum, either fix the timeline or cease to exist completely.",
-    "poster": "https://uhdmovies.email/wp-content/uploads/2023/11/loki-season-2.jpg",
+    "poster": "https://uhdmovies.tube/wp-content/uploads/2023/11/loki-season-2.jpg",
     "type": "series",
     "qualities": [
       {

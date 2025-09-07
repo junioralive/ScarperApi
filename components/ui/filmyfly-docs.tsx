@@ -184,7 +184,7 @@ const data = await response.json();
 console.log(data.data.items); // Array of movies`;
         } else if (selectedCategory.name === "Movie Details") {
           return `// Get movie download links
-const movieUrl = "${testParams.url || 'https://filmyfly.men/page-download/3567/Avengers-Endgame-2019.html'}";
+const movieUrl = "${testParams.url || 'https://filmyfly.dog//page-download/3567/Avengers-Endgame-2019.html'}";
 const response = await fetch("${baseUrl}/api/filmyfly/details?url=" + encodeURIComponent(movieUrl), {
   headers: {
     "x-api-key": "YOUR_API_KEY",
@@ -229,7 +229,7 @@ print(data["data"]["items"])  # Array of movies`;
 import requests
 from urllib.parse import quote
 
-movie_url = "${testParams.url || 'https://filmyfly.men/page-download/3567/Avengers-Endgame-2019.html'}"
+movie_url = "${testParams.url || 'https://filmyfly.dog//page-download/3567/Avengers-Endgame-2019.html'}"
 url = f"${baseUrl}/api/filmyfly/details?url={quote(movie_url)}"
 headers = {
     "x-api-key": "YOUR_API_KEY",
@@ -266,7 +266,7 @@ curl -X GET \\
         } else if (selectedCategory.name === "Movie Details") {
           return `# Get movie download links
 curl -X GET \\
-  "${baseUrl}/api/filmyfly/details?url=${encodeURIComponent(testParams.url || 'https://filmyfly.men/page-download/3567/Avengers-Endgame-2019.html')}" \\
+  "${baseUrl}/api/filmyfly/details?url=${encodeURIComponent(testParams.url || 'https://filmyfly.dog//page-download/3567/Avengers-Endgame-2019.html')}" \\
   -H "x-api-key: YOUR_API_KEY" \\
   -H "Content-Type: application/json"}`;
         } else {

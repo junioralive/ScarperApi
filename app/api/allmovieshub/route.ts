@@ -6,7 +6,7 @@ import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   if (url.startsWith('//')) return 'https:' + url;
-  if (url.startsWith('/')) return 'https://allmovieshub.yoga' + url;
+  if (url.startsWith('/')) return 'https://allmovieshub.dev/' + url;
   return url;
 }
 
@@ -89,8 +89,8 @@ function extractGenres(categories: string[]) {
 async function scrapeAllMoviesHubData(page: number = 1) {
   try {
     const url = page === 1 
-      ? 'https://allmovieshub.yoga/' 
-      : `https://allmovieshub.yoga/page/${page}/`;
+      ? 'https://allmovieshub.dev//' 
+      : `https://allmovieshub.dev//page/${page}/`;
     
     console.log(`Fetching AllMoviesHub content from: ${url}`);
 
@@ -100,7 +100,7 @@ async function scrapeAllMoviesHubData(page: number = 1) {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://allmovieshub.yoga/'
+        'Referer': 'https://allmovieshub.dev//'
       },
       next: { revalidate: 0 }
     });
@@ -208,7 +208,7 @@ async function scrapeAllMoviesHubData(page: number = 1) {
 // Function to search content
 async function searchAllMoviesHubData(searchQuery: string) {
   try {
-    const searchUrl = `https://allmovieshub.yoga/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://allmovieshub.dev//?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching AllMoviesHub with query: ${searchQuery}`);
     
@@ -218,7 +218,7 @@ async function searchAllMoviesHubData(searchQuery: string) {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://allmovieshub.yoga/'
+        'Referer': 'https://allmovieshub.dev//'
       }
     });
 

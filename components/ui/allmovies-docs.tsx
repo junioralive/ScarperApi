@@ -684,8 +684,8 @@ curl -X GET \\
     {
       "id": "12345",
       "title": "Housefull 5 (2025) Hindi DD2.0 HQ HDTC Full Movie",
-      "imageUrl": "https://allmovieshub.yoga/wp-content/uploads/2025/01/housefull-5.jpg",
-      "postUrl": "https://allmovieshub.yoga/download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
+      "imageUrl": "https://allmovieshub.dev//wp-content/uploads/2025/01/housefull-5.jpg",
+      "postUrl": "https://allmovieshub.dev//download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
       "releaseYear": "2025",
       "qualities": ["480p", "720p", "1080p"],
       "languages": ["Hindi"],
@@ -740,8 +740,8 @@ curl -X GET \\
     {
       "id": "12345",
       "title": "Housefull 5 (2025) Hindi DD2.0 HQ HDTC Full Movie",
-      "imageUrl": "https://allmovieshub.yoga/wp-content/uploads/2025/01/housefull-5.jpg",
-      "postUrl": "https://allmovieshub.yoga/download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
+      "imageUrl": "https://allmovieshub.dev//wp-content/uploads/2025/01/housefull-5.jpg",
+      "postUrl": "https://allmovieshub.dev//download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
       "releaseYear": "2025",
       "qualities": ["480p", "720p", "1080p"],
       "languages": ["Hindi"],
@@ -795,7 +795,7 @@ curl -X GET \\
   "movieData": {
     "movieName": "download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p",
     "title": "Download Housefull 5 (2025) Hindi DD2.0 HQ HDTC Full Movie",
-    "url": "https://allmovieshub.yoga/download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
+    "url": "https://allmovieshub.dev//download-housefull-5a-2025-hindi-dd2-0-hq-hdtc-full-movie-480p-720p-1080p/",
     "downloadLinks": [
       {
         "quality": "480p",

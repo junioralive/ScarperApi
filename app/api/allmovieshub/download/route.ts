@@ -95,7 +95,7 @@ async function fetchEpisodesFromArchive(archiveUrl: string): Promise<Episode[]> 
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://allmovieshub.yoga/'
+        'Referer': 'https://allmovieshub.dev//'
       }
     });
 
@@ -239,7 +239,7 @@ async function fetchEpisodesFromArchive(archiveUrl: string): Promise<Episode[]> 
 // Function to extract download links from the movie page
 async function scrapeMovieDownloadLinks(movieName: string): Promise<MovieDownloadData> {
   try {
-    const movieUrl = `https://allmovieshub.yoga/${movieName}/`;
+    const movieUrl = `https://allmovieshub.dev//${movieName}/`;
     
     console.log(`Fetching movie download page: ${movieUrl}`);
 
@@ -249,7 +249,7 @@ async function scrapeMovieDownloadLinks(movieName: string): Promise<MovieDownloa
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://allmovieshub.yoga/'
+        'Referer': 'https://allmovieshub.dev//'
       }
     });
 

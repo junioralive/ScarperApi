@@ -97,7 +97,7 @@ function generateIdFromUrl(url: string): string {
 // Main function to scrape ZinkMovies search results
 async function scrapeZinkMoviesSearch(searchQuery: string): Promise<ZinkMoviesItem[]> {
   try {
-    const searchUrl = `https://zinkmovies.autos/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://zinkmovies.hair/?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching ZinkMovies with query: ${searchQuery}`);
     console.log(`Search URL: ${searchUrl}`);
@@ -108,7 +108,7 @@ async function scrapeZinkMoviesSearch(searchQuery: string): Promise<ZinkMoviesIt
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://zinkmovies.autos/',
+        'Referer': 'https://zinkmovies.hair/',
       },
       next: { revalidate: 0 }
     });
@@ -194,8 +194,8 @@ async function scrapeZinkMoviesSearch(searchQuery: string): Promise<ZinkMoviesIt
 async function scrapeZinkMoviesHomepage(page: number = 1): Promise<ZinkMoviesItem[]> {
   try {
     const url = page === 1 
-      ? 'https://zinkmovies.autos/' 
-      : `https://zinkmovies.autos/page/${page}/`;
+      ? 'https://zinkmovies.hair/' 
+      : `https://zinkmovies.hair/page/${page}/`;
     
     console.log(`Fetching ZinkMovies homepage content from: ${url}`);
 
@@ -205,7 +205,7 @@ async function scrapeZinkMoviesHomepage(page: number = 1): Promise<ZinkMoviesIte
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://zinkmovies.autos/',
+        'Referer': 'https://zinkmovies.hair/',
       },
       next: { revalidate: 0 }
     });

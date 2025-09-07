@@ -33,7 +33,7 @@ interface FilmyFlyResponse {
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   if (url.startsWith('//')) return 'https:' + url;
-  if (url.startsWith('/')) return 'https://filmyfly.men' + url;
+  if (url.startsWith('/')) return 'https://filmyfly.dog/' + url;
   return url;
 }
 
@@ -128,7 +128,7 @@ function generateIdFromUrl(url: string): string {
 // Main function to scrape FilmyFly search results
 async function scrapeFilmyFlySearch(searchQuery: string): Promise<FilmyFlyItem[]> {
   try {
-    const searchUrl = `https://filmyfly.men/site-1.html?to-search=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://filmyfly.dog//site-1.html?to-search=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching FilmyFly with query: ${searchQuery}`);
     console.log(`Search URL: ${searchUrl}`);
@@ -139,7 +139,7 @@ async function scrapeFilmyFlySearch(searchQuery: string): Promise<FilmyFlyItem[]
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://filmyfly.men/',
+        'Referer': 'https://filmyfly.dog//',
       },
       next: { revalidate: 0 }
     });
@@ -170,7 +170,7 @@ async function scrapeFilmyFlySearch(searchQuery: string): Promise<FilmyFlyItem[]
       
       if (title && postUrl && imageUrl) {
         // Make postUrl absolute if it's relative
-        const absolutePostUrl = postUrl.startsWith('/') ? `https://filmyfly.men${postUrl}` : postUrl;
+        const absolutePostUrl = postUrl.startsWith('/') ? `https://filmyfly.dog/${postUrl}` : postUrl;
         
         // Extract all the metadata from the title
         const qualities = extractQualityInfo(title);
@@ -219,7 +219,7 @@ async function scrapeFilmyFlySearch(searchQuery: string): Promise<FilmyFlyItem[]
 // Function to scrape latest content from homepage
 async function scrapeFilmyFlyHomepage(): Promise<FilmyFlyItem[]> {
   try {
-    const url = 'https://filmyfly.men/';
+    const url = 'https://filmyfly.dog//';
     
     console.log(`Fetching FilmyFly homepage content from: ${url}`);
 
@@ -229,7 +229,7 @@ async function scrapeFilmyFlyHomepage(): Promise<FilmyFlyItem[]> {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://filmyfly.men/',
+        'Referer': 'https://filmyfly.dog//',
       },
       next: { revalidate: 0 }
     });
@@ -260,7 +260,7 @@ async function scrapeFilmyFlyHomepage(): Promise<FilmyFlyItem[]> {
       
       if (title && postUrl && imageUrl) {
         // Make postUrl absolute if it's relative
-        const absolutePostUrl = postUrl.startsWith('/') ? `https://filmyfly.men${postUrl}` : postUrl;
+        const absolutePostUrl = postUrl.startsWith('/') ? `https://filmyfly.dog/${postUrl}` : postUrl;
         
         // Extract all the metadata from the title
         const qualities = extractQualityInfo(title);

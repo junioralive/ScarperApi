@@ -58,8 +58,8 @@ function extractYear(title: string): string {
 async function scrapeDesireMoviesData(page: number = 1) {
   try {
     const url = page === 1 
-      ? 'https://desiremovies.cologne/' 
-      : `https://desiremovies.cologne/page/${page}/`;
+      ? 'https://desiremovies.nagoya//' 
+      : `https://desiremovies.nagoya//page/${page}/`;
     
     console.log(`Fetching DesireMovies content from: ${url}`);
 
@@ -187,7 +187,7 @@ async function scrapeDesireMoviesData(page: number = 1) {
 // Function to search content on DesireMovies
 async function searchDesireMoviesData(searchQuery: string) {
   try {
-    const searchUrl = `https://desiremovies.cologne/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://desiremovies.nagoya//?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching DesireMovies with query: ${searchQuery}`);
     
@@ -201,8 +201,8 @@ async function searchDesireMoviesData(searchQuery: string) {
         'Cache-Control': 'max-age=0',
         'Cookie': 'xla=s4t; _ga=GA1.1.1080600201.1749632377; _ga_JY310N86S8=GS2.1.1749635924.2.1.1749635925.59.0.0',
         'Priority': 'u=0, i',
-        'Referer': 'https://desiremovies.cologne/',
-        'Origin': 'https://desiremovies.cologne',
+        'Referer': 'https://desiremovies.nagoya//',
+        'Origin': 'https://desiremovies.nagoya/',
         'Sec-Fetch-Dest': 'document',
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'same-origin',

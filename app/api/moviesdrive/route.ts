@@ -12,8 +12,8 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
 async function scrapeMoviesDriveData(page: number = 1) {
   try {
     const url = page === 1 
-      ? 'https://moviesdrive.channel/' 
-      : `https://moviesdrive.channel/page/${page}/`;
+      ? 'https://moviesdrive.rodeo//' 
+      : `https://moviesdrive.rodeo//page/${page}/`;
     
     console.log(`Fetching content from: ${url}`);
 
@@ -99,7 +99,7 @@ async function scrapeMoviesDriveData(page: number = 1) {
 // Function to search content - needs similar updates
 async function searchMoviesDriveData(searchQuery: string) {
   try {
-    const searchUrl = `https://moviesdrive.channel/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://moviesdrive.rodeo//?s=${encodeURIComponent(searchQuery)}`;
     
     const response = await fetch(searchUrl, {
       cache: 'no-cache',

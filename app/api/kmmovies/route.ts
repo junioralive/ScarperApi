@@ -13,8 +13,8 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
 async function scrapeKMmoviesData(page: number = 1) {
   try {
     const url = page === 1 
-      ? 'https://w1.kmmovies.buzz/' 
-      : `https://w1.kmmovies.buzz/page/${page}/`;
+      ? 'https://kmmovies.art/' 
+      : `https://kmmovies.art/page/${page}/`;
     
     console.log(`Fetching KMmovies content from: ${url}`);
 
@@ -107,7 +107,7 @@ async function scrapeKMmoviesData(page: number = 1) {
 // Function to search content on KMmovies
 async function searchKMmoviesData(searchQuery: string) {
   try {
-    const searchUrl = `https://w1.kmmovies.buzz/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://kmmovies.art/?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching KMmovies with query: ${searchQuery}`);
     

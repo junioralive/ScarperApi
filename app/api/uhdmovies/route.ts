@@ -35,7 +35,7 @@ interface UHDMoviesResponse {
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
   if (url.startsWith('//')) return 'https:' + url;
-  if (url.startsWith('/')) return 'https://uhdmovies.email' + url;
+  if (url.startsWith('/')) return 'https://uhdmovies.tube' + url;
   return url;
 }
 
@@ -120,7 +120,7 @@ function extractYear(title: string): string {
 // Main function to scrape UHDMovies data
 async function scrapeUHDMoviesData(page: number = 1, searchQuery?: string): Promise<UHDMovie[]> {
   try {
-    let url = 'https://uhdmovies.email/';
+    let url = 'https://uhdmovies.tube/';
     
     if (searchQuery) {
       url += `search/${encodeURIComponent(searchQuery)}`;
@@ -139,7 +139,7 @@ async function scrapeUHDMoviesData(page: number = 1, searchQuery?: string): Prom
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://uhdmovies.email/',
+        'Referer': 'https://uhdmovies.tube/',
       },
       next: { revalidate: 0 }
     });

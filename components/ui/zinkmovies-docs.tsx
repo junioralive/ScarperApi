@@ -50,7 +50,7 @@ const apiCategories: ApiCategory[] = [
         endpoint: "/api/zinkmovies/details",
         description: "Get movie details including player URL and download links",
         params: [
-          { name: "url", type: "string", required: true, description: "ZinkMovies movie/TV show URL (e.g., https://zinkmovies.autos/movies/avengers-endgame)" }
+          { name: "url", type: "string", required: true, description: "ZinkMovies movie/TV show URL (e.g., https://zinkmovies.hair/movies/avengers-endgame)" }
         ]
       }
     ]
@@ -191,7 +191,7 @@ const data = await response.json();
 console.log(data.data.items); // Array of movies/TV shows`;
         } else if (selectedCategory.name === "Movie/TV Details") {
           return `// Get movie/TV show details
-const movieUrl = "https://zinkmovies.autos/movies/avengers-endgame";
+const movieUrl = "https://zinkmovies.hair/movies/avengers-endgame";
 const response = await fetch("${baseUrl}/api/zinkmovies/details?url=" + encodeURIComponent(movieUrl), {
   headers: {
     "x-api-key": "YOUR_API_KEY",
@@ -251,7 +251,7 @@ print(data["data"]["items"])  # Array of movies/TV shows`;
 import requests
 from urllib.parse import quote
 
-movie_url = "https://zinkmovies.autos/movies/avengers-endgame"
+movie_url = "https://zinkmovies.hair/movies/avengers-endgame"
 url = f"${baseUrl}/api/zinkmovies/details?url={quote(movie_url)}"
 headers = {
     "x-api-key": "YOUR_API_KEY",

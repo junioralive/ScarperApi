@@ -102,7 +102,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ZinkMovies
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Referer': 'https://zinkmovies.autos/',
+        'Referer': 'https://zinkmovies.hair/',
       }
     });
 

@@ -60,7 +60,7 @@ function extractContentType(spanElement: any): 'Movie' | 'TV Show' {
 // Main function to scrape Cinemalux search results
 async function scrapeCinemaluxSearch(searchQuery: string): Promise<CinemaluxItem[]> {
   try {
-    const searchUrl = `https://cinemalux.store/?s=${encodeURIComponent(searchQuery)}`;
+    const searchUrl = `https://cinemalux.autos//?s=${encodeURIComponent(searchQuery)}`;
     
     console.log(`Searching Cinemalux with query: ${searchQuery}`);
     console.log(`Search URL: ${searchUrl}`);
@@ -71,7 +71,7 @@ async function scrapeCinemaluxSearch(searchQuery: string): Promise<CinemaluxItem
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://cinemalux.store/',
+        'Referer': 'https://cinemalux.autos//',
       },
       next: { revalidate: 0 }
     });
@@ -154,8 +154,8 @@ async function scrapeCinemaluxSearch(searchQuery: string): Promise<CinemaluxItem
 async function scrapeCinemaluxHomepage(page: number = 1): Promise<CinemaluxItem[]> {
   try {
     const url = page === 1 
-      ? 'https://cinemalux.store/' 
-      : `https://cinemalux.store/page/${page}/`;
+      ? 'https://cinemalux.autos//' 
+      : `https://cinemalux.autos//page/${page}/`;
     
     console.log(`Fetching Cinemalux homepage content from: ${url}`);
 
@@ -165,7 +165,7 @@ async function scrapeCinemaluxHomepage(page: number = 1): Promise<CinemaluxItem[
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Referer': 'https://cinemalux.store/',
+        'Referer': 'https://cinemalux.autos//',
       },
       next: { revalidate: 0 }
     });

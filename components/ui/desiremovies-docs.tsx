@@ -67,7 +67,7 @@ const desireMoviesApiCategories: ApiCategory[] = [
         endpoint: "/api/desiremovies/details",
         description: "Get detailed movie information including synopsis and download links",
         params: [
-          { name: "url", type: "string", required: true, description: "Full movie URL from DesireMovies (e.g., https://desiremovies.cologne/movie-name/)" }
+          { name: "url", type: "string", required: true, description: "Full movie URL from DesireMovies (e.g., https://desiremovies.nagoya//movie-name/)" }
         ]
       }
     ]
@@ -324,7 +324,7 @@ data.posts.forEach(movie => {
 });`;
         } else if (selectedCategory.name === "Movie Details") {
           return `// Get movie details from DesireMovies
-const movieUrl = "https://desiremovies.cologne/spider-man-no-way-home-2021/";
+const movieUrl = "https://desiremovies.nagoya//spider-man-no-way-home-2021/";
 const response = await fetch(\`${baseUrl}/api/desiremovies/details?url=\${encodeURIComponent(movieUrl)}\`, {
   headers: {
     "x-api-key": "YOUR_API_KEY",
@@ -581,8 +581,8 @@ curl -X GET \\
     {
       "id": "123456",
       "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie [Dual Audio] WEB-HDRip 480p 720p 1080p HD",
-      "imageUrl": "https://desiremovies.cologne/wp-content/uploads/2022/01/spider-man-nwh.jpg",
-      "postUrl": "https://desiremovies.cologne/spider-man-no-way-home-2021-hindi-dubbed/",
+      "imageUrl": "https://desiremovies.nagoya//wp-content/uploads/2022/01/spider-man-nwh.jpg",
+      "postUrl": "https://desiremovies.nagoya//spider-man-no-way-home-2021-hindi-dubbed/",
       "description": "When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.",
       "releaseYear": "2021",
       "movieType": "WEB-HDRip",
@@ -597,8 +597,8 @@ curl -X GET \\
     {
       "id": "123457",
       "title": "RRR (2022) Hindi Dubbed Movie [Dual Audio] BluRay 480p 720p 1080p 4K UHD",
-      "imageUrl": "https://desiremovies.cologne/wp-content/uploads/2022/03/rrr-movie.jpg",
-      "postUrl": "https://desiremovies.cologne/rrr-2022-hindi-dubbed-movie/",
+      "imageUrl": "https://desiremovies.nagoya//wp-content/uploads/2022/03/rrr-movie.jpg",
+      "postUrl": "https://desiremovies.nagoya//rrr-2022-hindi-dubbed-movie/",
       "description": "A fearless revolutionary and an officer in the British force, who once shared a deep bond, decide to join forces and chart out an inspirational path of freedom against the despotic rule.",
       "releaseYear": "2022",
       "movieType": "BluRay",
@@ -626,8 +626,8 @@ curl -X GET \\
     {
       "id": "123456",
       "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie [Dual Audio] WEB-HDRip",
-      "imageUrl": "https://desiremovies.cologne/wp-content/uploads/2022/01/spider-man-nwh.jpg",
-      "postUrl": "https://desiremovies.cologne/spider-man-no-way-home-2021-hindi-dubbed/",
+      "imageUrl": "https://desiremovies.nagoya//wp-content/uploads/2022/01/spider-man-nwh.jpg",
+      "postUrl": "https://desiremovies.nagoya//spider-man-no-way-home-2021-hindi-dubbed/",
       "description": "When a spell goes wrong, dangerous foes from other worlds start to appear, forcing Peter to discover what it truly means to be Spider-Man.",
       "releaseYear": "2021",
       "movieType": "WEB-HDRip",
@@ -642,8 +642,8 @@ curl -X GET \\
     {
       "id": "123458",
       "title": "Spider-Man: Far From Home (2019) Hindi Dubbed Movie [Dual Audio] BluRay",
-      "imageUrl": "https://desiremovies.cologne/wp-content/uploads/2019/07/spider-man-ffh.jpg",
-      "postUrl": "https://desiremovies.cologne/spider-man-far-from-home-2019-hindi-dubbed/",
+      "imageUrl": "https://desiremovies.nagoya//wp-content/uploads/2019/07/spider-man-ffh.jpg",
+      "postUrl": "https://desiremovies.nagoya//spider-man-far-from-home-2019-hindi-dubbed/",
       "description": "Following the events of Avengers: Endgame, Spider-Man must step up to take on new threats in a world that has changed forever.",
       "releaseYear": "2019",
       "movieType": "BluRay",
@@ -658,8 +658,8 @@ curl -X GET \\
     {
       "id": "123459",
       "title": "Spider-Man: Into the Spider-Verse (2018) Hindi Dubbed Movie [Dual Audio] BluRay",
-      "imageUrl": "https://desiremovies.cologne/wp-content/uploads/2018/12/spider-verse.jpg",
-      "postUrl": "https://desiremovies.cologne/spider-man-into-spider-verse-2018-hindi-dubbed/",
+      "imageUrl": "https://desiremovies.nagoya//wp-content/uploads/2018/12/spider-verse.jpg",
+      "postUrl": "https://desiremovies.nagoya//spider-man-into-spider-verse-2018-hindi-dubbed/",
       "description": "Teen Miles Morales becomes the Spider-Man of his universe, and must join with five spider-powered individuals from other dimensions.",
       "releaseYear": "2018",
       "movieType": "BluRay",
@@ -684,7 +684,7 @@ curl -X GET \\
   "success": true,
   "data": {
     "title": "Spider-Man: No Way Home (2021) Hindi Dubbed Movie [Dual Audio] WEB-HDRip",
-    "posterImage": "https://desiremovies.cologne/wp-content/uploads/2022/01/spider-man-nwh-poster.jpg",
+    "posterImage": "https://desiremovies.nagoya//wp-content/uploads/2022/01/spider-man-nwh-poster.jpg",
     "releaseYear": "2021",
     "director": "Jon Watts",
     "cast": "Tom Holland, Zendaya, Benedict Cumberbatch, Jacob Batalon",
@@ -766,7 +766,7 @@ curl -X GET \\
     "totalStreamingLinks": 9,
     "website": "DesireMovies"
   },
-  "sourceUrl": "https://desiremovies.cologne/spider-man-no-way-home-2021-hindi-dubbed/",
+  "sourceUrl": "https://desiremovies.nagoya//spider-man-no-way-home-2021-hindi-dubbed/",
   "remainingRequests": 93
 }`;
 

@@ -121,7 +121,7 @@ export default function DesireMovieDetailPage({ params }: { params: { id: string
       
       try {
         setLoading(true)
-        const fullUrl = `https://desiremovies.cologne/${id}/`
+        const fullUrl = `https://desiremovies.nagoya//${id}/`
         
         const res = await fetch(`/api/desiremovies/details?url=${encodeURIComponent(fullUrl)}`, {
           headers: {
