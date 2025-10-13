@@ -54,21 +54,22 @@ interface FourKHDHubDetailsResponse {
   remainingRequests?: number;
 }
 
-// Function to extract download links
+// Function to extract download links from the new structure
 function extractDownloadLinks($: any, $element: any): DownloadLink[] {
   const links: DownloadLink[] = [];
-  
-  $element.find('a[href*="techyboy4u.com"]').each((_, linkElement: any) => {
+
+  // Look for download links in the grid structure
+  $element.find('.grid a[href*="viralkhabarbull.com"]').each((_: any, linkElement: any) => {
     const $link = $(linkElement);
     const url = $link.attr('href');
-    const text = $link.text().trim();
-    
+    const text = $link.find('span').first().text().trim();
+
     if (url && text) {
       let type: 'HubDrive' | 'HubCloud' = 'HubDrive';
       if (text.toLowerCase().includes('hubcloud')) {
         type = 'HubCloud';
       }
-      
+
       links.push({
         name: text.replace(/\s+/g, ' '),
         url: url,
@@ -76,39 +77,90 @@ function extractDownloadLinks($: any, $element: any): DownloadLink[] {
       });
     }
   });
-  
+
   return links;
 }
 
 // Function to extract badges/metadata
 function extractBadges($: any, $element: any): string[] {
   const badges: string[] = [];
-  
+
   $element.find('.badge').each((_: any, badgeElement: any) => {
     const badgeText = $(badgeElement).text().trim();
     if (badgeText) {
       badges.push(badgeText);
     }
   });
-  
+
   return badges;
 }
 
 // Function to parse language badges
 function extractLanguages(badges: string[]): string[] {
-  const languageBadge = badges.find(badge => 
-    badge.includes(',') || 
+  const languageBadge = badges.find(badge =>
+    badge.includes(',') ||
     badge.toLowerCase().includes('hindi') ||
     badge.toLowerCase().includes('english') ||
     badge.toLowerCase().includes('tamil') ||
     badge.toLowerCase().includes('telugu')
   );
-  
+
   if (languageBadge && languageBadge.includes(',')) {
     return languageBadge.split(',').map(lang => lang.trim());
   }
-  
+
   return languageBadge ? [languageBadge] : [];
+}
+
+// Function to extract episode information from episode sections
+function extractEpisodes($: any, $seasonElement: any): EpisodeFile[] {
+  const episodes: EpisodeFile[] = [];
+
+  $seasonElement.find('.episode-download-item').each((_: any, episodeElement: any) => {
+    const $episode = $(episodeElement);
+
+    // Extract episode title
+    const title = $episode.find('.episode-file-title').text().trim();
+
+    // Extract episode number from badge
+    const episodeNumberBadge = $episode.find('.badge-psa').text().trim();
+    const episodeNumber = episodeNumberBadge.replace('Episode-', '').trim();
+
+    // Extract file size
+    const size = $episode.find('.badge-size').text().trim();
+
+    // Extract download links
+    const links: DownloadLink[] = [];
+    $episode.find('.episode-links a').each((_: any, linkElement: any) => {
+      const $link = $(linkElement);
+      const url = $link.attr('href');
+      const text = $link.text().trim();
+
+      if (url && text) {
+        let type: 'HubDrive' | 'HubCloud' = 'HubDrive';
+        if (text.toLowerCase().includes('hubcloud')) {
+          type = 'HubCloud';
+        }
+
+        links.push({
+          name: text.replace(/\s+/g, ' '),
+          url: url,
+          type: type
+        });
+      }
+    });
+
+    if (title && episodeNumber && links.length > 0) {
+      episodes.push({
+        title: title,
+        size: size || 'Unknown',
+        episodeNumber: episodeNumber,
+        links: links
+      });
+    }
+  });
+
+  return episodes;
 }
 
 // Main function to scrape 4KHDHub details page
@@ -133,69 +185,68 @@ async function scrape4KHDHubDetails(url: string): Promise<any> {
 
     const html = await response.text();
     const $ = load(html);
-    
+
     // Extract page title
     const pageTitle = $('title').text().trim() || 'Unknown Title';
-    
-    // Parse Complete Packs
+
+    // Parse Complete Packs from the complete-pack tab
     const completePacks: SeasonPack[] = [];
-    
-    // First, try the new content-section structure
-    $('.content-section .download-item').each((_, packElement) => {
+
+    $('#complete-pack .space-y-4 .download-item').each((_, packElement) => {
       const $pack = $(packElement);
       const header = $pack.find('.download-header');
       const content = $pack.find('div[id^="content-"]');
-      
+
       // Extract data-file-id from header
       const fileId = header.attr('data-file-id') || '';
-      
+
       // Extract title from the flex-1 div (get first text node, not including <br> and <code>)
       const titleElement = header.find('.flex-1');
       let mainTitle = '';
-      
+
       // Get the first text node before any <br> or <code> tags
-      titleElement.contents().each((_, node) => {
+      titleElement.contents().each((_, node: any) => {
         if (node.nodeType === 3) { // Text node
           const text = $(node).text().trim();
           if (text && !mainTitle) {
             mainTitle = text;
             return false; // Break the loop
           }
-        } else if (node.nodeName.toLowerCase() === 'br') {
+        } else if (node.nodeName && node.nodeName.toLowerCase() === 'br') {
           return false; // Stop at <br>
         }
       });
-      
+
       // Clean up title
       mainTitle = mainTitle.replace(/\s+/g, ' ').trim();
-      
+
       // Extract badges from header (inside <code> element)
       const headerBadges = extractBadges($, header);
-      
+
       // Extract full file title from content
       const fullTitle = content.find('.file-title').text().trim();
-      
+
       // Extract additional badges from content
       const contentBadges = extractBadges($, content);
-      
+
       // Combine all badges
       const allBadges = [...headerBadges, ...contentBadges];
-      
+
       // Extract download links from the grid
       const links = extractDownloadLinks($, content);
-      
+
       if (mainTitle && links.length > 0) {
         const languages = extractLanguages(allBadges);
         const sizeBadge = allBadges.find(b => b.includes('GB') || b.includes('MB'));
-        const qualityBadge = allBadges.find(b => 
-          b.includes('1080p') || 
-          b.includes('2160p') || 
-          b.includes('720p') || 
+        const qualityBadge = allBadges.find(b =>
+          b.includes('1080p') ||
+          b.includes('2160p') ||
+          b.includes('720p') ||
           b.includes('4K')
         );
-        const formatBadge = allBadges.find(b => 
-          b.includes('BluRay') || 
-          b.includes('WEB-DL') || 
+        const formatBadge = allBadges.find(b =>
+          b.includes('BluRay') ||
+          b.includes('WEB-DL') ||
           b.includes('REMUX') ||
           b.includes('HEVC') ||
           b.includes('x264') ||
@@ -203,7 +254,7 @@ async function scrape4KHDHubDetails(url: string): Promise<any> {
           b.includes('HDR') ||
           b.includes('DV')
         );
-        
+
         completePacks.push({
           id: fileId,
           title: fullTitle || mainTitle,
@@ -218,104 +269,49 @@ async function scrape4KHDHubDetails(url: string): Promise<any> {
         });
       }
     });
-    
-    // If no content found with new structure, try the old structure as fallback
-    if (completePacks.length === 0) {
-      $('#complete-pack .download-item').each((_, packElement) => {
-        const $pack = $(packElement);
-        const header = $pack.find('.download-header');
-        const content = $pack.find('.px-4');
-        
-        const season = header.find('.episode-number').text().trim();
-        const titleElement = header.find('.flex-1');
-        const mainTitle = titleElement.contents().first().text().trim();
-        const badges = extractBadges($, header);
-        
-        const fileId = header.attr('data-file-id') || '';
-        const fullTitle = content.find('.file-title').text().trim();
-        const links = extractDownloadLinks($, content);
-        
-        if (season && mainTitle && links.length > 0) {
-          const languages = extractLanguages(badges);
-          const sizeBadge = badges.find(b => b.includes('GB') || b.includes('MB'));
-          const qualityBadge = badges.find(b => 
-            b.includes('1080p') || 
-            b.includes('2160p') || 
-            b.includes('720p') || 
-            b.includes('4K')
-          );
-          const formatBadge = badges.find(b => 
-            b.includes('BluRay') || 
-            b.includes('WEB-DL') || 
-            b.includes('REMUX')
-          );
-          
-          completePacks.push({
-            id: fileId,
-            title: fullTitle || mainTitle,
-            season: season,
-            size: sizeBadge || 'Unknown',
-            languages: languages,
-            quality: qualityBadge || 'Unknown',
-            format: formatBadge || 'Unknown',
-            source: '4KHDHub.com',
-            badges: badges,
-            links: links
-          });
-        }
-      });
-    }
-    
-    // Parse Individual Episodes (keeping existing logic)
+
+    // Parse Episode Seasons from the episodes tab
     const episodeSeasons: EpisodeSeason[] = [];
-    $('#episodes .episode-item').each((_, seasonElement) => {
+
+    $('#episodes .season-item').each((_, seasonElement) => {
       const $season = $(seasonElement);
       const header = $season.find('.episode-header');
-      const content = $season.find('.episode-content');
-      
-      const seasonNum = header.find('.episode-number').text().trim();
+
+      // Extract season ID from data-episode-id
+      const seasonId = header.attr('data-episode-id') || '';
+
+      // Extract season title and info
       const seasonTitle = header.find('.episode-title').text().trim();
-      const metaBadges = extractBadges($, header.find('.episode-meta'));
-      
-      const episodeId = header.attr('data-episode-id') || '';
-      const languages = extractLanguages(metaBadges);
-      const episodeCountBadge = metaBadges.find(b => b.includes('Episodes'));
-      const episodeCount = episodeCountBadge ? 
-        parseInt(episodeCountBadge.replace('Episodes', '').trim()) : 0;
-      
-      // Extract individual episode files
-      const episodes: EpisodeFile[] = [];
-      content.find('.episode-download-item').each((_, episodeElement) => {
-        const $episode = $(episodeElement);
-        const episodeTitle = $episode.find('.episode-file-title').text().trim();
-        const episodeInfo = $episode.find('.episode-file-info');
-        const episodeNumber = episodeInfo.find('.badge-psa').text().trim();
-        const episodeSize = episodeInfo.find('.badge-size').text().trim();
-        const episodeLinks = extractDownloadLinks($, $episode.find('.episode-links'));
-        
-        if (episodeTitle && episodeNumber && episodeLinks.length > 0) {
-          episodes.push({
-            title: episodeTitle,
-            size: episodeSize,
-            episodeNumber: episodeNumber,
-            links: episodeLinks
-          });
-        }
-      });
-      
-      if (seasonNum && seasonTitle && episodes.length > 0) {
+      const seasonNumber = header.find('.episode-number').text().trim();
+
+      // Extract episode count and languages from badges
+      const badges = extractBadges($, header.find('.episode-meta'));
+      const episodeCountBadge = badges.find(b => b.toLowerCase().includes('episodes'));
+      const episodeCount = episodeCountBadge ? parseInt(episodeCountBadge.match(/\d+/)?.[0] || '0') : 0;
+
+      const languages = extractLanguages(badges);
+
+      // Extract quality from season title
+      const qualityMatch = seasonTitle.match(/(1080p|2160p|720p|4K)/i);
+      const quality = qualityMatch ? qualityMatch[0] : 'Unknown';
+
+      // Extract episodes from the episode content
+      const episodeContent = $season.find('.episode-content');
+      const episodes = extractEpisodes($, episodeContent);
+
+      if (seasonTitle && episodes.length > 0) {
         episodeSeasons.push({
-          id: episodeId,
+          id: seasonId,
           title: seasonTitle,
-          season: seasonNum,
-          episodeCount: episodeCount,
+          season: seasonNumber,
+          episodeCount: episodeCount || episodes.length,
           languages: languages,
-          quality: seasonTitle,
+          quality: quality,
           episodes: episodes
         });
       }
     });
-    
+
     return {
       title: pageTitle,
       url: url,
@@ -324,7 +320,7 @@ async function scrape4KHDHubDetails(url: string): Promise<any> {
       totalPacks: completePacks.length,
       totalEpisodeSeasons: episodeSeasons.length
     };
-    
+
   } catch (error) {
     console.error('Error scraping 4KHDHub details:', error);
     throw error;
@@ -344,8 +340,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<FourKHDHub
 
     if (!url || !url.trim()) {
       return NextResponse.json<FourKHDHubDetailsResponse>(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'URL parameter is required',
           message: 'Please provide a valid 4KHDHub URL'
         },
@@ -357,8 +353,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<FourKHDHub
     const isValidUrl = await validate4kHDHubUrl(url.trim());
     if (!isValidUrl) {
       return NextResponse.json<FourKHDHubDetailsResponse>(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Invalid URL format',
           message: 'URL must be from a valid 4kHDHub domain'
         },
@@ -387,10 +383,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<FourKHDHub
 
   } catch (error: unknown) {
     console.error('4KHDHub Details API error:', error);
-    
+
     return NextResponse.json<FourKHDHubDetailsResponse>(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to extract details from 4KHDHub',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       },

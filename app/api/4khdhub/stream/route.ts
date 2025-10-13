@@ -34,7 +34,7 @@ function rot13(str: string): string {
 function decodeString(encryptedString: string): any {
   try {
     console.log('Starting decode with:', encryptedString);
-    
+
     // First base64 decode
     let decoded = atob(encryptedString);
     console.log('After first base64 decode:', decoded);
@@ -57,7 +57,7 @@ function decodeString(encryptedString: string): any {
     return result;
   } catch (error) {
     console.error('Error decoding string:', error);
-    
+
     // Try alternative decoding approaches
     try {
       console.log('Trying alternative decode approach...');
@@ -103,7 +103,7 @@ async function getRedirectLinks(link: string): Promise<string> {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       }
     });
-    
+
     const resText = await res.text();
 
     const regex = /ck\('_wp_http_\d+','([^']+)'/g;
@@ -113,14 +113,14 @@ async function getRedirectLinks(link: string): Promise<string> {
     while ((match = regex.exec(resText)) !== null) {
       combinedString += match[1];
     }
-    
+
     const decodedString = decode(pen(decode(decode(combinedString))));
     const data = JSON.parse(decodedString);
     console.log('Redirect data:', data);
-    
+
     const token = encode(data?.data);
     const blogLink = data?.wp_http1 + '?re=' + token;
-    
+
     // Wait for the required time
     const waitTime = (Number(data?.total_time) + 3) * 1000;
     console.log(`Waiting ${waitTime}ms before proceeding...`);
@@ -131,16 +131,16 @@ async function getRedirectLinks(link: string): Promise<string> {
     let vcloudLink = 'Invalid Request';
     let attempts = 0;
     const maxAttempts = 5;
-    
+
     while (vcloudLink.includes('Invalid Request') && attempts < maxAttempts) {
       const blogRes = await fetch(blogLink, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         }
       });
-      
+
       const blogText = await blogRes.text();
-      
+
       if (blogText.includes('Invalid Request')) {
         console.log('Invalid request, retrying...');
         attempts++;
@@ -175,7 +175,7 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         }
       });
-      
+
       const hubcdnText = await hubcdnRes.text();
 
       // Extract reurl from script tag
@@ -193,14 +193,14 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
           try {
             const decodedUrl = atob(base64Encoded);
             console.log('Decoded URL:', decodedUrl);
-            
+
             let finalVideoUrl = decodedUrl;
             const linkMatch = decodedUrl.match(/[?&]link=(.+)$/);
             if (linkMatch && linkMatch[1]) {
               finalVideoUrl = decodeURIComponent(linkMatch[1]);
               console.log('Extracted video URL:', finalVideoUrl);
             }
-            
+
             return [
               {
                 server: 'HDHub4u Direct',
@@ -224,22 +224,22 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         }
       });
-      
+
       const text = await res.text();
       const encryptedString = text.split("s('o','")?.[1]?.split("',180")?.[0];
       console.log('Encrypted string:', encryptedString);
-      
+
       if (!encryptedString) {
         throw new Error('Could not extract encrypted string from response');
       }
-      
+
       const decodedString: any = decodeString(encryptedString);
       console.log('Decoded string:', decodedString);
-      
+
       if (!decodedString?.o) {
         throw new Error('Invalid decoded data structure');
       }
-      
+
       link = atob(decodedString.o);
       console.log('New link:', link);
 
@@ -257,16 +257,16 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           }
         });
-        
+
         const redirectLinkText = await redirectLinkRes.text();
         const $ = load(redirectLinkText);
-        
+
         // Try multiple selectors to find download/stream links
         hubcloudLink = $('h3:contains("1080p")').find('a').attr('href') ||
-                      $('a[href*="hubdrive"]').first().attr('href') ||
-                      $('a[href*="hubcloud"]').first().attr('href') ||
-                      $('a[href*="drive"]').first().attr('href');
-        
+          $('a[href*="hubdrive"]').first().attr('href') ||
+          $('a[href*="hubcloud"]').first().attr('href') ||
+          $('a[href*="drive"]').first().attr('href');
+
         // If still not found, try regex patterns
         if (!hubcloudLink) {
           const hubcloudPatterns = [
@@ -274,7 +274,7 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
             /href="(https:\/\/[^"]*hubdrive[^"]*)"/g,
             /href="(https:\/\/[^"]*drive[^"]*[a-zA-Z0-9]+)"/g
           ];
-          
+
           for (const pattern of hubcloudPatterns) {
             const matches = [...redirectLinkText.matchAll(pattern)];
             if (matches.length > 0) {
@@ -283,7 +283,7 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
             }
           }
         }
-        
+
         console.log('Extracted hubcloud link from page:', hubcloudLink);
       }
     }
@@ -300,9 +300,9 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       }
     });
-    
+
     const finalText = await hubcloudRes.text();
-    
+
     // Try to extract video URL from various patterns
     const videoUrlPatterns = [
       /sources:\s*\[\s*{\s*file:\s*"([^"]+)"/,
@@ -312,7 +312,7 @@ async function hdhub4uGetStream(link: string): Promise<StreamLink[]> {
       /"src":"([^"]+\.mp4[^"]*)"/,
       /video[^>]*src="([^"]+\.mp4[^"]*)"/
     ];
-    
+
     for (const pattern of videoUrlPatterns) {
       const match = finalText.match(pattern);
       if (match && match[1]) {
@@ -357,8 +357,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<HDHub4uStr
 
     if (!episodeUrl) {
       return NextResponse.json<HDHub4uStreamResponse>(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Episode URL is required',
           message: 'Please provide an episode URL parameter'
         },
@@ -366,18 +366,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HDHub4uStr
       );
     }
 
-    // Validate that it's a techyboy4u URL (HDHub4u episode links)
-    if (!episodeUrl.includes('techyboy4u.com')) {
-      return NextResponse.json<HDHub4uStreamResponse>(
-        { 
-          success: false, 
-          error: 'Invalid URL',
-          message: 'URL must be from techyboy4u.com (HDHub4u episode link)'
-        },
-        { status: 400 }
-      );
-    }
-
+  
     console.log('Processing HDHub4u stream request for URL:', episodeUrl);
 
     const streamLinks = await hdhub4uGetStream(episodeUrl);
@@ -402,10 +391,10 @@ export async function GET(request: NextRequest): Promise<NextResponse<HDHub4uStr
 
   } catch (error: unknown) {
     console.error('HDHub4u stream API error:', error);
-    
+
     return NextResponse.json<HDHub4uStreamResponse>(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to extract stream links',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       },

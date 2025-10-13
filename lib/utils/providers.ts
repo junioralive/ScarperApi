@@ -11,6 +11,11 @@ let cachedProviders: ProvidersData | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Cookie caching
+let cachedCookies: string | null = null;
+let lastCookieFetchTime = 0;
+const COOKIE_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
 /**
  * Fetches provider data from the remote JSON API
  * Uses caching to avoid frequent API calls
@@ -220,6 +225,75 @@ export async function getMoviesDriveUrl(): Promise<string> {
 }
 
 /**
+ * Gets the NetMirror provider URL specifically
+ */
+export async function getNetMirrorUrl(): Promise<string> {
+  const url = await getProviderUrl('nfMirror');
+
+  if (!url) {
+    throw new Error('NetMirror provider URL not found');
+  }
+
+  return url + '/';
+}
+
+/**
+ * Fetches cookies from the remote JSON API
+ * Uses caching to avoid frequent API calls
+ */
+export async function fetchNetMirrorCookies(): Promise<string> {
+  const now = Date.now();
+
+  // Return cached cookies if they're still fresh
+  if (cachedCookies && (now - lastCookieFetchTime) < COOKIE_CACHE_DURATION) {
+    return cachedCookies;
+  }
+
+  try {
+    console.log('Fetching NetMirror cookies from remote API...');
+
+    const response = await fetch('https://anshu78780.github.io/json/cookies.json', {
+      cache: 'no-cache',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ScraperAPI/1.0)',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cookies: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const cookies = data.cookies;
+
+    if (!cookies) {
+      throw new Error('Cookies not found in response');
+    }
+
+    // Update cache
+    cachedCookies = cookies;
+    lastCookieFetchTime = now;
+
+    console.log('Successfully fetched NetMirror cookies');
+    return cookies;
+
+  } catch (error) {
+    console.error('Error fetching NetMirror cookies:', error);
+
+    // Return cached cookies if available, even if stale
+    if (cachedCookies) {
+      console.log('Using stale cached cookies due to fetch error');
+      return cachedCookies;
+    }
+
+    // Fallback to hardcoded cookies if API fails
+    console.log('Using fallback hardcoded cookies');
+    return 'user_token=0b9f0991e238ee73b1ce39dbf5639c27; t_hash=292ed39d9c14c36b83340195ee7bc308%3A%3A1760117145%3A%3Ani; t_hash_t=7af930bb22d0c8ef8fec9ebc90ece211%3A%3A3f19f3cec2d186660a059a8edd549d20%3A%3A1760263892%3A%3Ani;';
+  }
+}
+
+/**
  * Validates if a URL belongs to the 4kHDHub domain
  */
 export async function validate4kHDHubUrl(url: string): Promise<boolean> {
@@ -391,6 +465,22 @@ export async function validateMoviesDriveUrl(url: string): Promise<boolean> {
     return urlDomain === baseDomain;
   } catch (error) {
     console.error('Error validating MoviesDrive URL:', error);
+    return false;
+  }
+}
+
+/**
+ * Validates if a URL belongs to the NetMirror domain
+ */
+export async function validateNetMirrorUrl(url: string): Promise<boolean> {
+  try {
+    const baseUrl = await getNetMirrorUrl();
+    const baseDomain = new URL(baseUrl).hostname;
+    const urlDomain = new URL(url).hostname;
+
+    return urlDomain === baseDomain;
+  } catch (error) {
+    console.error('Error validating NetMirror URL:', error);
     return false;
   }
 }
