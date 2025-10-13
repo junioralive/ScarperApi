@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey, createUnauthorizedResponse } from '@/lib/middleware/api-auth';
 import * as cheerio from 'cheerio';
 
-interface VCloudLink {
+interface DownloadLink {
   url: string;
   server: string;
   type: string;
@@ -13,8 +13,8 @@ interface VCloudLink {
 interface NextDriveResponse {
   success: boolean;
   data?: {
-    vCloudLinks: VCloudLink[];
-    episodeLinks: VCloudLink[]; // Add separate array for episode links
+    downloadLinks: DownloadLink[];
+    episodeLinks: DownloadLink[]; // Add separate array for episode links
     totalLinks: number;
   };
   error?: string;
@@ -22,12 +22,12 @@ interface NextDriveResponse {
   remainingRequests?: number;
 }
 
-function extractVCloudLinks(html: string): { general: VCloudLink[], episodes: VCloudLink[] } {
-  const generalLinks: VCloudLink[] = [];
-  const episodeLinks: VCloudLink[] = [];
+function extractDownloadLinks(html: string): { general: DownloadLink[], episodes: DownloadLink[] } {
+  const generalLinks: DownloadLink[] = [];
+  const episodeLinks: DownloadLink[] = [];
   const $ = cheerio.load(html);
   
-  // Extract episode-specific V-Cloud links with stronger detection
+  // Extract episode-specific download links (V-Cloud and Zee-Cloud) with stronger detection
   $('h4[style*="text-align: center"]').each((index, element) => {
     const $h4 = $(element);
     const h4Text = $h4.text().trim();
@@ -38,9 +38,10 @@ function extractVCloudLinks(html: string): { general: VCloudLink[], episodes: VC
     if (episodeMatch) {
       const episodeNumber = parseInt(episodeMatch[1]);
       
-      // Find the next paragraph with V-Cloud link
+      // Find the next paragraph with download links
       const nextP = $h4.next('p[style*="text-align: center"]');
       
+      // Extract V-Cloud links
       nextP.find('a[href*="vcloud.lol"]').each((i, linkElement) => {
         const $link = $(linkElement);
         const href = $link.attr('href');
@@ -57,10 +58,34 @@ function extractVCloudLinks(html: string): { general: VCloudLink[], episodes: VC
           });
         }
       });
+      
+      // Extract Zee-Cloud links
+      nextP.find('a[href*="zee-cloud.shop"]').each((i, linkElement) => {
+        const $link = $(linkElement);
+        const href = $link.attr('href');
+        const button = $link.find('button');
+        const buttonText = button.text().trim();
+        
+        if (href && (buttonText.includes('Zee-Cloud') || buttonText.includes('G-Direct'))) {
+          const serverType = buttonText.includes('G-Direct') ? 'G-Direct' : 'Zee-Cloud';
+          const linkType = buttonText.includes('Resumable') ? 'Resumable' : 
+                          buttonText.includes('Instant') ? 'Instant' : 'Standard';
+          
+          episodeLinks.push({
+            url: href,
+            server: serverType,
+            type: linkType,
+            description: `Episode ${episodeNumber} - ${buttonText}`,
+            episode: episodeNumber
+          });
+        }
+      });
     }
   });
   
-  // Extract general V-Cloud links (not episode-specific)
+  // Extract general download links (not episode-specific)
+  
+  // V-Cloud links
   $('a[href*="vcloud.lol"]').each((index, element) => {
     const $link = $(element);
     const href = $link.attr('href');
@@ -80,12 +105,36 @@ function extractVCloudLinks(html: string): { general: VCloudLink[], episodes: VC
     }
   });
   
+  // Zee-Cloud links
+  $('a[href*="zee-cloud.shop"]').each((index, element) => {
+    const $link = $(element);
+    const href = $link.attr('href');
+    const button = $link.find('button');
+    const buttonText = button.text().trim();
+    
+    // Skip if this link is already in episode links
+    const isEpisodeLink = episodeLinks.some(ep => ep.url === href);
+    
+    if (href && (buttonText.includes('Zee-Cloud') || buttonText.includes('G-Direct')) && !isEpisodeLink) {
+      const serverType = buttonText.includes('G-Direct') ? 'G-Direct' : 'Zee-Cloud';
+      const linkType = buttonText.includes('Resumable') ? 'Resumable' : 
+                      buttonText.includes('Instant') ? 'Instant' : 'Standard';
+      
+      generalLinks.push({
+        url: href,
+        server: serverType,
+        type: linkType,
+        description: buttonText || `${serverType} Download`
+      });
+    }
+  });
+  
   return { general: generalLinks, episodes: episodeLinks };
 }
 
-async function scrapeNextDriveVCloudLinks(url: string): Promise<{ general: VCloudLink[], episodes: VCloudLink[] }> {
+async function scrapeNextDriveDownloadLinks(url: string): Promise<{ general: DownloadLink[], episodes: DownloadLink[] }> {
   try {
-    console.log(`Fetching NextDrive V-Cloud links from: ${url}`);
+    console.log(`Fetching NextDrive download links from: ${url}`);
     
     const response = await fetch(url, {
       headers: {
@@ -103,15 +152,15 @@ async function scrapeNextDriveVCloudLinks(url: string): Promise<{ general: VClou
 
     const html = await response.text();
     
-    // Extract V-Cloud links
-    const { general, episodes } = extractVCloudLinks(html);
+    // Extract download links (V-Cloud and Zee-Cloud)
+    const { general, episodes } = extractDownloadLinks(html);
     
-    console.log(`Successfully extracted ${general.length} general V-Cloud links and ${episodes.length} episode links`);
+    console.log(`Successfully extracted ${general.length} general download links and ${episodes.length} episode links`);
     
     return { general, episodes };
 
   } catch (error) {
-    console.error('Error scraping NextDrive V-Cloud links:', error);
+    console.error('Error scraping NextDrive download links:', error);
     throw error;
   }
 }
@@ -138,15 +187,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<NextDriveR
       );
     }
 
-    console.log('Processing NextDrive V-Cloud extraction request:', { url });
+    console.log('Processing NextDrive download links extraction request:', { url });
 
-    const { general, episodes } = await scrapeNextDriveVCloudLinks(url);
+    // If user provided a nexdrive.pro URL, normalize it to nexdrive.lat
+    let normalizedUrl = url;
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname.endsWith('.pro')) {
+        parsed.hostname = parsed.hostname.replace(/\.pro$/i, '.lat');
+        normalizedUrl = parsed.toString();
+        console.log('Normalized NextDrive URL from .pro to .lat:', normalizedUrl);
+      }
+    } catch (e) {
+      // If URL parsing fails, keep original and let fetch handle it (will likely error)
+      console.warn('Failed to parse provided URL for normalization, using original:', url);
+    }
+
+    const { general, episodes } = await scrapeNextDriveDownloadLinks(normalizedUrl);
 
     if (general.length === 0 && episodes.length === 0) {
       return NextResponse.json<NextDriveResponse>({
         success: false,
-        error: 'No V-Cloud links found',
-        message: 'Could not find any V-Cloud links on the provided NextDrive page',
+        error: 'No download links found',
+        message: 'Could not find any V-Cloud or Zee-Cloud links on the provided NextDrive page',
         remainingRequests: authResult.apiKey ? (authResult.apiKey.requestsLimit - authResult.apiKey.requestsUsed) : 0
       });
     }
@@ -154,7 +217,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<NextDriveR
     return NextResponse.json<NextDriveResponse>({
       success: true,
       data: {
-        vCloudLinks: general,
+        downloadLinks: general,
         episodeLinks: episodes,
         totalLinks: general.length + episodes.length
       },
@@ -162,12 +225,12 @@ export async function GET(request: NextRequest): Promise<NextResponse<NextDriveR
     });
 
   } catch (error: unknown) {
-    console.error('NextDrive V-Cloud extraction API error:', error);
+    console.error('NextDrive download links extraction API error:', error);
     
     return NextResponse.json<NextDriveResponse>(
       { 
         success: false, 
-        error: 'Failed to extract V-Cloud links from NextDrive',
+        error: 'Failed to extract download links from NextDrive',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       },
       { status: 500 }

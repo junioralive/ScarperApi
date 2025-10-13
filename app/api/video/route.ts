@@ -61,7 +61,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     // Encode the URL for the external API request
     const encodedUrl = encodeURIComponent(episodeUrl);
-    const externalApiUrl = `https://scarper-ansh.vercel.app/api/animesalt/video?url=${encodedUrl}`;
+    const externalApiUrl = `https://net-cookie-kacj.vercel.app/api/animesalt/video?url=${encodedUrl}`;
 
     // Make the request to the external API
     const response = await fetch(externalApiUrl, { 

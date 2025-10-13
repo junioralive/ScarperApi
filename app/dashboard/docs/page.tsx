@@ -21,10 +21,9 @@ import Movies4UDocs from "@/components/ui/movies4u-docs";
 import UHDMoviesDocs from "@/components/ui/uhdmovies-docs";
 import HDHub4uDocs from "@/components/ui/hdhub4u-docs";
 import FilmyFlyDocs from "@/components/ui/filmyfly-docs";
-import MoviesWorldDocs from "@/components/ui/moviesworld-docs";
-import ShowboxDocs from "@/components/ui/showbox-docs";
 import ZinkMoviesDocs from "@/components/ui/zinkmovies-docs";
 import FourKHDHubDocs from "@/components/ui/4khdhub-docs";
+import NetMirrorDocs from "@/components/ui/netmirror-docs";
 
 interface ApiEndpoint {
   method: string;
@@ -136,7 +135,7 @@ export default function DocsPage() {
     }
 
     // Check required parameters
-    const missingParams = selectedEndpoint.params?.filter(param => 
+    const missingParams = selectedEndpoint.params?.filter(param =>
       param.required && !testParams[param.name]
     ) || [];
 
@@ -148,7 +147,7 @@ export default function DocsPage() {
     setLoading(true);
     try {
       let url = selectedEndpoint.endpoint;
-      
+
       // Replace path parameters
       Object.entries(testParams).forEach(([key, value]) => {
         if (value && url.includes(`{${key}}`)) {
@@ -177,7 +176,7 @@ export default function DocsPage() {
 
       const data = await res.json();
       setResponse(JSON.stringify(data, null, 2));
-      
+
       if (!res.ok) {
         toast.error(`Error: ${res.status}`);
       } else {
@@ -194,7 +193,7 @@ export default function DocsPage() {
   const generateCodeExample = (language: string) => {
     let url = selectedEndpoint.endpoint;
     const params = Object.entries(testParams).filter(([_, value]) => value);
-    
+
     // Replace path parameters
     Object.entries(testParams).forEach(([key, value]) => {
       if (value && url.includes(`{${key}}`)) {
@@ -386,7 +385,7 @@ curl -X GET \\
                     Movies API
                   </div>
                 </SelectItem>
-                 
+
                 <SelectItem value="10bitclub" className="text-sm">
                   <div className="flex items-center gap-2">
                     <Film className="h-4 w-4" />
@@ -435,18 +434,6 @@ curl -X GET \\
                     FilmyFly API
                   </div>
                 </SelectItem>
-                <SelectItem value="moviesworld" className="text-sm">
-                  <div className="flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    MoviesWorld API
-                  </div>
-                </SelectItem>
-                <SelectItem value="showbox" className="text-sm">
-                  <div className="flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    Showbox API
-                  </div>
-                </SelectItem>
                 <SelectItem value="zinkmovies" className="text-sm">
                   <div className="flex items-center gap-2">
                     <Video className="h-4 w-4" />
@@ -457,6 +444,12 @@ curl -X GET \\
                   <div className="flex items-center gap-2">
                     <Film className="h-4 w-4" />
                     4KHDHub API
+                  </div>
+                </SelectItem>
+                <SelectItem value="netmirror" className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <Video className="h-4 w-4" />
+                    NetMirror API
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -974,7 +967,7 @@ curl -X GET \\
                   </div>
                   <div className="mt-3 p-2 sm:p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-md">
                     <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                      <strong>Note:</strong> The episodes endpoint gives you episode links, not streaming links. 
+                      <strong>Note:</strong> The episodes endpoint gives you episode links, not streaming links.
                       Use the episode link with the video endpoint to get the actual streaming URL.
                     </p>
                   </div>
@@ -1027,14 +1020,6 @@ curl -X GET \\
         <div className="w-full overflow-hidden">
           <FilmyFlyDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
         </div>
-      ) : selectedApiType === "moviesworld" ? (
-        <div className="w-full overflow-hidden">
-          <MoviesWorldDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
-        </div>
-      ) : selectedApiType === "showbox" ? (
-        <div className="w-full overflow-hidden">
-          <ShowboxDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
-        </div>
       ) : selectedApiType === "4khdhub" ? (
         <div className="w-full overflow-hidden">
           <FourKHDHubDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
@@ -1042,6 +1027,10 @@ curl -X GET \\
       ) : selectedApiType === "zinkmovies" ? (
         <div className="w-full overflow-hidden">
           <ZinkMoviesDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
+        </div>
+      ) : selectedApiType === "netmirror" ? (
+        <div className="w-full overflow-hidden">
+          <NetMirrorDocs apiKey={apiKey} onApiKeyChange={setApiKey} />
         </div>
       ) : (
         <div className="w-full overflow-hidden">

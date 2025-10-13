@@ -1,38 +1,125 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { load } from 'cheerio'
 
-async function extractDirectDownloadLink(url: string) {
+interface Stream {
+  server: string;
+  link: string;
+  type: string;
+}
+
+const headers = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.5',
+  'Referer': 'https://hubcloud.lol/',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Connection': 'keep-alive',
+  'Upgrade-Insecure-Requests': '1',
+}
+
+const decode = function (value: string) {
+  if (value === undefined) {
+    return '';
+  }
+  return atob(value.toString());
+};
+
+async function hubcloudExtracter(link: string): Promise<Stream[]> {
   try {
-    console.log(`Extracting direct download link from: ${url}`)
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+    console.log('hubcloudExtracter', link);
+    const baseUrl = link.split('/').slice(0, 3).join('/');
+    const streamLinks: Stream[] = [];
+
+    const vLinkRes = await fetch(link, { headers });
+
+    if (!vLinkRes.ok) {
+      throw new Error(`Failed to fetch: ${vLinkRes.status}`);
+    }
+
+    const vLinkText = await vLinkRes.text();
+    const $vLink = load(vLinkText);
+    const vLinkRedirect = vLinkText.match(/var\s+url\s*=\s*'([^']+)';/) || [];
+
+    let vcloudLink =
+      decode(vLinkRedirect[1]?.split('r=')?.[1]) ||
+      vLinkRedirect[1] ||
+      $vLink('.fa-file-download.fa-lg').parent().attr('href') ||
+      link;
+
+    console.log('vcloudLink', vcloudLink);
+
+    if (vcloudLink?.startsWith('/')) {
+      vcloudLink = `${baseUrl}${vcloudLink}`;
+      console.log('New vcloudLink', vcloudLink);
+    }
+
+    const vcloudRes = await fetch(vcloudLink, {
+      headers,
+      redirect: 'follow',
+    });
+
+    if (!vcloudRes.ok) {
+      throw new Error(`Failed to fetch vcloud link: ${vcloudRes.status}`);
+    }
+
+    const $ = load(await vcloudRes.text());
+
+    const linkClass = $('.btn-success.btn-lg.h6,.btn-danger,.btn-secondary');
+
+    for (let i = 0; i < linkClass.length; i++) {
+      const element = linkClass[i];
+      const itm = $(element);
+      let link = itm.attr('href') || '';
+
+      if (link?.includes('.dev') && !link?.includes('/?id=')) {
+        streamLinks.push({ server: 'Cf Worker', link: link, type: 'mkv' });
       }
-    })
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.status}`)
+      if (link?.includes('pixeld')) {
+        if (!link?.includes('api')) {
+          const token = link.split('/').pop();
+          const baseUrl = link.split('/').slice(0, -2).join('/');
+          link = `${baseUrl}/api/file/${token}?download`;
+        }
+        streamLinks.push({ server: 'Pixeldrain', link: link, type: 'mkv' });
+      }
+
+      if (link?.includes('hubcloud') || link?.includes('/?id=')) {
+        try {
+          const newLinkRes = await fetch(link, {
+            method: 'HEAD',
+            headers,
+            redirect: 'follow'
+          });
+          const newLink = newLinkRes.url?.split('link=')?.[1] || link;
+          streamLinks.push({ server: 'hubcloud', link: newLink, type: 'mkv' });
+        } catch (error) {
+          console.log('hubcloudExtracter error in hubcloud link: ', error);
+        }
+      }
+
+      if (link?.includes('cloudflarestorage')) {
+        streamLinks.push({ server: 'CfStorage', link: link, type: 'mkv' });
+      }
+
+      if (link?.includes('fastdl')) {
+        streamLinks.push({ server: 'FastDl', link: link, type: 'mkv' });
+      }
+
+      if (link.includes('hubcdn')) {
+        streamLinks.push({
+          server: 'HubCdn',
+          link: link,
+          type: 'mkv',
+        });
+      }
     }
 
-    const html = await response.text()
-    const $ = load(html)
-    
-    // Extract the direct download link from the a tag with id="vd"
-    const directLink = $('a#vd').attr('href')
-    
-    if (directLink) {
-      console.log(`Found direct download link: ${directLink}`)
-      return directLink
-    } else {
-      console.log('No direct download link found in the page')
-      return null
-    }
+    console.log('streamLinks', streamLinks);
+    return streamLinks;
   } catch (error) {
-    console.error('Error extracting direct download link:', error)
-    return null
+    console.log('hubcloudExtracter error: ', error);
+    return [];
   }
 }
 
@@ -40,7 +127,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const url = searchParams.get('url')
-    
+
     if (!url) {
       return NextResponse.json(
         { success: false, error: 'URL parameter is required' },
@@ -48,50 +135,38 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const response = await fetch(`https://scarper-ansh.vercel.app/api/hubcloud?url=${encodeURIComponent(url)}`)
-    const data = await response.json()
-    
-    // Process the links to extract direct download URLs from gpdl.hubcdn.fans
-    if (data.success && data.links && Array.isArray(data.links)) {
-      const processedLinks = await Promise.all(
-        data.links.map(async (link: any) => {
-          // Check if the link contains gpdl.hubcdn.fans
-          if (link.link && link.link.includes('gpdl.hubcdn.fans')) {
-            console.log(`Processing gpdl.hubcdn.fans link: ${link.link}`)
-            
-            // Extract the direct download link
-            const directLink = await extractDirectDownloadLink(link.link)
-            
-            if (directLink) {
-              // Replace the original link with the direct download link
-              return {
-                ...link,
-                link: directLink,
-                originalLink: link.link, // Keep original for reference
-                isDirect: true
-              }
-            }
-          }
-          
-          // Return original link if not a gpdl.hubcdn.fans URL or extraction failed
-          return {
-            ...link,
-            isDirect: false
-          }
-        })
-      )
-      
+    console.log(`Processing HubCloud URL: ${url}`);
+
+    // Use the new hubcloudExtracter function
+    const streamLinks = await hubcloudExtracter(url);
+
+    if (streamLinks.length > 0) {
       return NextResponse.json({
-        ...data,
-        links: processedLinks
-      })
+        success: true,
+        links: streamLinks.map(stream => ({
+          name: stream.server,
+          link: stream.link,
+          type: stream.type,
+          server: stream.server,
+          isDirect: true
+        }))
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        error: 'No stream links found',
+        links: []
+      });
     }
-    
-    return NextResponse.json(data)
+
   } catch (error) {
-    console.error('Error fetching from hubcloud API:', error)
+    console.error('Error processing HubCloud URL:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch video links' },
+      {
+        success: false,
+        error: 'Failed to extract stream links',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
