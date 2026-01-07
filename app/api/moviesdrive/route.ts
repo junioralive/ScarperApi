@@ -41,51 +41,44 @@ async function scrapeMoviesDriveData(page: number = 1) {
     console.log(`Received HTML content (first 500 chars): ${html.substring(0, 500)}`);
     
     const $ = load(html);
-    const posts = [];
+    const posts: any[] = [];
 
-    // Updated selector to match the actual structure on the site
-    const movieItems = $('li.thumb');
+    const movieItems = $('.movies-grid > a');
     console.log(`Found ${movieItems.length} movie/series items`);
     
     if (movieItems.length === 0) {
-      // If no specific items found, log the page structure for debugging
-      console.log('No movie items found with li.thumb selector. Page structure:', {
+      console.log('No movie items found with .movies-grid > a selector. Page structure:', {
         bodyContent: $('body').text().substring(0, 200),
-        hasLiElements: $('li').length > 0,
-        classesOnLi: $('li').first().attr('class'),
+        hasMoviesGrid: $('.movies-grid').length > 0,
         mainContentArea: $('#content, .content, #main, .main').length > 0
       });
     }
 
-    // Process each movie/series item
     movieItems.each((_, element) => {
       const $element = $(element);
       
-      // Extract image from figure > img
-      let imageUrl = $element.find('figure img').attr('src');
+      let imageUrl = $element.find('.poster-image img').attr('src');
       imageUrl = normalizeImageUrl(imageUrl);
       
-      // Extract title from figcaption > a > p
-      const title = $element.find('figcaption a p').text().trim();
+      const title = $element.find('.poster-title').text().trim();
       
-      // Extract post URL from figure > a or figcaption > a
-      const postUrl = $element.find('figure a').attr('href') || 
-                     $element.find('figcaption a').attr('href');
+      const postUrl = $element.attr('href');
       
-      // Add to posts array if we have at least title and URL
+      const quality = $element.find('.poster-quality').text().trim();
+      
       if (title && postUrl) {
         posts.push({
           imageUrl,
           title,
           postUrl,
-        //   description: '' // No descriptions in the provided HTML structure
+          quality: quality || undefined
         });
       } else {
         console.log('Skipping incomplete movie item:', { 
           hasImage: !!imageUrl,
           title: title || '(missing)', 
           hasUrl: !!postUrl,
-          elementHTML: $element.html().substring(0, 100) + '...'
+          elementHTML: ($element.html() || '').substring(0, 100) + '...'
         });
       }
     });
@@ -120,29 +113,26 @@ async function searchMoviesDriveData(searchQuery: string) {
 
     const html = await response.text();
     const $ = load(html);
-    const posts = [];
+    const posts: any[] = [];
 
-    // Updated selector to match the site structure
-    $('li.thumb').each((_, element) => {
+    $('.movies-grid > a').each((_, element) => {
       const $element = $(element);
       
-      // Extract image
-      let imageUrl = $element.find('figure img').attr('src');
+      let imageUrl = $element.find('.poster-image img').attr('src');
       imageUrl = normalizeImageUrl(imageUrl);
       
-      // Extract title
-      const title = $element.find('figcaption a p').text().trim();
+      const title = $element.find('.poster-title').text().trim();
       
-      // Extract post URL
-      const postUrl = $element.find('figure a').attr('href') || 
-                     $element.find('figcaption a').attr('href');
+      const postUrl = $element.attr('href');
+      
+      const quality = $element.find('.poster-quality').text().trim();
       
       if (title && postUrl) {
         posts.push({
           imageUrl,
           title,
           postUrl,
-        //   description: ''
+          quality: quality || undefined
         });
       }
     });
