@@ -26,11 +26,228 @@ const decode = function (value: string) {
   return atob(value.toString());
 };
 
+const rot13 = function (str: string): string {
+  return str.replace(/[a-zA-Z]/g, function (char) {
+    const charCode = char.charCodeAt(0);
+    const isUpperCase = char <= 'Z';
+    const baseCharCode = isUpperCase ? 65 : 97;
+    return String.fromCharCode(
+      ((charCode - baseCharCode + 13) % 26) + baseCharCode,
+    );
+  });
+};
+
+const pen = function (value: string): string {
+  return value.replace(/[a-zA-Z]/g, function (char: string) {
+    return String.fromCharCode(
+      (char <= 'Z' ? 90 : 122) >=
+        (char = char.charCodeAt(0) + 13)
+        ? char
+        : char - 26,
+    );
+  });
+};
+
+const encode = function (value: string): string {
+  return btoa(value.toString());
+};
+
+function decodeString(encryptedString: string): any {
+  try {
+    console.log('Starting decode with:', encryptedString);
+
+    // First base64 decode
+    let decoded = atob(encryptedString);
+    console.log('After first base64 decode:', decoded);
+
+    // Second base64 decode
+    decoded = atob(decoded);
+    console.log('After second base64 decode:', decoded);
+
+    // ROT13 decode
+    decoded = rot13(decoded);
+    console.log('After ROT13 decode:', decoded);
+
+    // Third base64 decode
+    decoded = atob(decoded);
+    console.log('After third base64 decode:', decoded);
+
+    // Parse JSON
+    const result = JSON.parse(decoded);
+    console.log('Final parsed result:', result);
+    return result;
+  } catch (error) {
+    console.error('Error decoding string:', error);
+
+    // Try alternative decoding approaches
+    try {
+      console.log('Trying alternative decode approach...');
+      let altDecoded = atob(encryptedString);
+      altDecoded = atob(altDecoded);
+      const altResult = JSON.parse(altDecoded);
+      console.log('Alternative decode successful:', altResult);
+      return altResult;
+    } catch (altError) {
+      console.error('Alternative decode also failed:', altError);
+      return null;
+    }
+  }
+}
+
+async function getRedirectLinks(link: string): Promise<string> {
+  try {
+    const res = await fetch(link, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      }
+    });
+
+    const resText = await res.text();
+
+    const regex = /ck\('_wp_http_\d+','([^']+)'/g;
+    let combinedString = '';
+
+    let match;
+    while ((match = regex.exec(resText)) !== null) {
+      combinedString += match[1];
+    }
+
+    const decodedString = decode(pen(decode(decode(combinedString))));
+    const data = JSON.parse(decodedString);
+    console.log('Redirect data:', data);
+
+    const token = encode(data?.data);
+    const blogLink = data?.wp_http1 + '?re=' + token;
+
+    // Wait for the required time
+    const waitTime = (Number(data?.total_time) + 3) * 1000;
+    console.log(`Waiting ${waitTime}ms before proceeding...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+
+    console.log('Blog link:', blogLink);
+
+    let vcloudLink = 'Invalid Request';
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (vcloudLink.includes('Invalid Request') && attempts < maxAttempts) {
+      const blogRes = await fetch(blogLink, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        }
+      });
+
+      const blogText = await blogRes.text();
+
+      if (blogText.includes('Invalid Request')) {
+        console.log('Invalid request, retrying...');
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        const reurlMatch = blogText.match(/var reurl = "([^"]+)"/);
+        if (reurlMatch) {
+          vcloudLink = reurlMatch[1];
+          break;
+        }
+      }
+    }
+
+    return vcloudLink;
+  } catch (err) {
+    console.log('Error in getRedirectLinks:', err);
+    return link;
+  }
+}
+
 async function hubcloudExtracter(link: string): Promise<Stream[]> {
   try {
     console.log('hubcloudExtracter', link);
     const baseUrl = link.split('/').slice(0, 3).join('/');
     const streamLinks: Stream[] = [];
+
+    // Handle gadgetsweb.xyz/?id= links specially
+    if (link.includes('gadgetsweb.xyz') && link.includes('/?id=')) {
+      console.log('Detected gadgetsweb.xyz link with encrypted ID');
+      
+      const res = await fetch(link, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        }
+      });
+
+      const text = await res.text();
+      const encryptedString = text.split("s('o','")?.[1]?.split("',180")?.[0];
+      console.log('Encrypted string:', encryptedString);
+
+      if (!encryptedString) {
+        throw new Error('Could not extract encrypted string from response');
+      }
+
+      const decodedString: any = decodeString(encryptedString);
+      console.log('Decoded string:', decodedString);
+
+      if (!decodedString?.o) {
+        throw new Error('Invalid decoded data structure');
+      }
+
+      const decodedLink = atob(decodedString.o);
+      console.log('Decoded link:', decodedLink);
+
+      const redirectLink = await getRedirectLinks(decodedLink);
+      console.log('Redirect link:', redirectLink);
+
+      // Check if the redirect link is already a hubcloud drive link
+      if (redirectLink.includes('hubcloud') && redirectLink.includes('/drive/')) {
+        return [{
+          server: 'HubCloud',
+          link: redirectLink,
+          type: 'mkv',
+        }];
+      }
+
+      // Fetch the redirect page to find download links
+      const redirectLinkRes = await fetch(redirectLink, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        }
+      });
+
+      const redirectLinkText = await redirectLinkRes.text();
+      const $ = load(redirectLinkText);
+
+      // Try multiple selectors to find download/stream links
+      let hubcloudLink = $('h3:contains("1080p")').find('a').attr('href') ||
+        $('a[href*="hubdrive"]').first().attr('href') ||
+        $('a[href*="hubcloud"]').first().attr('href') ||
+        $('a[href*="drive"]').first().attr('href') || '';
+
+      // If still not found, try regex patterns
+      if (!hubcloudLink) {
+        const hubcloudPatterns = [
+          /href="(https:\/\/hubcloud\.[^\/]+\/drive\/[^"]+)"/g,
+          /href="(https:\/\/[^"]*hubdrive[^"]*)"/g,
+          /href="(https:\/\/[^"]*drive[^"]*[a-zA-Z0-9]+)"/g
+        ];
+
+        for (const pattern of hubcloudPatterns) {
+          const matches = [...redirectLinkText.matchAll(pattern)];
+          if (matches.length > 0) {
+            hubcloudLink = matches[matches.length - 1][1];
+            break;
+          }
+        }
+      }
+
+      if (hubcloudLink) {
+        console.log('Extracted hubcloud link:', hubcloudLink);
+        return [{
+          server: 'HubCloud',
+          link: hubcloudLink,
+          type: 'mkv',
+        }];
+      }
+    }
 
     const vLinkRes = await fetch(link, { 
       headers: {
