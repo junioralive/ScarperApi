@@ -1,191 +1,134 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { signInWithEmail, signInWithGoogle } from "@/lib/auth"
-import { useAuth } from "@/contexts/auth-context"
-import { Loader2 } from "lucide-react"
-
-interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
   ...props
-}: LoginFormProps) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
-
-  // Check if user is already logged in
-  useEffect(() => {
-    if (!authLoading && user) {
-      // Check if user has API keys before redirecting
-      fetch(`/api/api-keys?userId=${user.uid}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.apiKeys?.length > 0) {
-            router.push("/dashboard/anime")
-          } else {
-            router.push("/dashboard/api-keys")
-          }
-        })
-        .catch(() => {
-          router.push("/dashboard/api-keys")
-        })
-    }
-  }, [user, authLoading, router])
-
-  // Show loading state while checking authentication
-  if (authLoading) {
-    return (
-      <div className={cn("flex flex-col gap-6", className)} {...props}>
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Checking authentication...</span>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Don't render the form if user is already logged in
-  if (user) {
-    return null
-  }
+}: React.ComponentProps<"form">) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
 
-    const { user, error: authError } = await signInWithEmail(email, password)
-
-    if (authError) {
-      setError(authError)
-    } else if (user) {
-      router.push("/dashboard/anime") // Redirect to dashboard or home page
+    try {
+      await authClient.signIn.email({
+        email,
+        password,
+        callbackURL: "/",
+      });
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to login");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setLoading(false)
-  }
-
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true)
-    setError("")
-
-    const { user, error: authError } = await signInWithGoogle()
-
-    if (authError) {
-      setError(authError)
-    } else if (user) {
-      router.push("/dashboard/anime") // Redirect to dashboard or home page
+  const handleGitHubLogin = async () => {
+    setIsLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/",
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to login with GitHub");
+      setIsLoading(false);
     }
-
-    setGoogleLoading(false)
-  }
+  };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleEmailLogin}
+      {...props}
+    >
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <p className="text-muted-foreground text-sm text-balance">
             Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleEmailLogin}>
-            <div className="flex flex-col gap-6">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={loading || googleLoading}
-                />
-              </div>
-
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading || googleLoading}
-                />
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading || googleLoading}
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Login
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleGoogleLogin}
-                  disabled={loading || googleLoading}
-                >
-                  {googleLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Login with Google
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="/signup" className="underline underline-offset-4">
-                Sign up
-              </a>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  )
+          </p>
+        </div>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
+        </Field>
+        <Field>
+          <div className="flex items-center">
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <a
+              href="#"
+              className="ml-auto text-sm underline-offset-4 hover:underline"
+            >
+              Forgot your password?
+            </a>
+          </div>
+          <Input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+          />
+        </Field>
+        <Field>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Loading..." : "Login"}
+          </Button>
+        </Field>
+        <FieldSeparator>Or continue with</FieldSeparator>
+        <Field>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={handleGitHubLogin}
+            disabled={isLoading}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+                fill="currentColor"
+              />
+            </svg>
+            Login with GitHub
+          </Button>
+          <FieldDescription className="text-center">
+            Don&apos;t have an account?{" "}
+            <a href="/signup" className="underline underline-offset-4">
+              Sign up
+            </a>
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    </form>
+  );
 }

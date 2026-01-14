@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getNetMirrorUrl, fetchNetMirrorCookies } from '@/lib/utils/providers';
+import { getBaseUrl, getCookies } from '@/lib/baseurl';
 
 interface NetMirrorSearchResponse {
   success: boolean;
@@ -20,8 +20,8 @@ interface NetMirrorSearchResponse {
  */
 async function searchNetMirror(query: string, timestamp: string): Promise<any> {
   try {
-    const baseUrl = await getNetMirrorUrl();
-    const cookies = await fetchNetMirrorCookies();
+    const baseUrl = await getBaseUrl('netmirror');
+    const cookies = await getCookies();
     
     // Remove trailing slash from baseUrl if it exists, then add search.php
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;

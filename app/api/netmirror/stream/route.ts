@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchNetMirrorCookies } from '@/lib/utils/providers';
+import { getCookies } from '@/lib/baseurl';
 
 interface NetMirrorStreamResponse {
     success: boolean;
@@ -25,7 +25,7 @@ interface PlayResponse {
  */
 async function getPlayHash(id: string): Promise<string> {
     try {
-        const cookies = await fetchNetMirrorCookies();
+        const cookies = await getCookies();
 
         console.log(`Getting play hash for ID: ${id}`);
 
@@ -108,7 +108,7 @@ function addPrefixToSources(data: any): any {
  */
 async function getPlaylist(id: string, timestamp: string, h: string): Promise<any> {
     try {
-        const cookies = await fetchNetMirrorCookies();
+        const cookies = await getCookies();
         const playlistUrl = `https://net51.cc/playlist.php?id=${id}&tm=${timestamp}&h=${encodeURIComponent(h)}`;
 
         console.log(`Getting playlist from: ${playlistUrl}`);

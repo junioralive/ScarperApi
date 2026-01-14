@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { load } from 'cheerio';
-import { getNetMirrorUrl, fetchNetMirrorCookies } from '@/lib/utils/providers';
+import { getBaseUrl, getCookies } from '@/lib/baseurl';
 
 interface NetMirrorItem {
   id: string;
@@ -45,8 +45,8 @@ function normalizeImageUrl(url: string | undefined): string {
  */
 async function scrapeNetMirrorData(): Promise<NetMirrorItem[]> {
   try {
-    const baseUrl = await getNetMirrorUrl();
-    const cookies = await fetchNetMirrorCookies();
+    const baseUrl = await getBaseUrl('nfMirror');
+    const cookies = await getCookies();
     
     console.log(`Fetching NetMirror content from: ${baseUrl}`);
 
@@ -109,10 +109,10 @@ async function scrapeNetMirrorData(): Promise<NetMirrorItem[]> {
 /**
  * Function to fetch post details from NetMirror post.php endpoint
  */
-async function fetchNetMirrorPost(id: string, timestamp?: string): Promise<any> {
+async function fetchNetMirrorPost(id: string, timestamp?: string): Promise<Record<string, unknown>> {
   try {
-    const baseUrl = await getNetMirrorUrl();
-    const cookies = await fetchNetMirrorCookies();
+    const baseUrl = await getBaseUrl('netmirror');
+    const cookies = await getCookies();
     const currentTime = timestamp || Date.now().toString();
     
     const postUrl = `${baseUrl}post.php?id=${id}&t=${currentTime}`;
@@ -160,7 +160,7 @@ async function fetchNetMirrorPost(id: string, timestamp?: string): Promise<any> 
   }
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse<NetMirrorResponse>> {
+export async function GET(): Promise<NextResponse<NetMirrorResponse>> {
   try {
     const items = await scrapeNetMirrorData();
 
