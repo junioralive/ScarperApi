@@ -17,4 +17,5 @@ export const PROVIDERS: Provider[] = [
   { name: "Vega", endpoint: "/api/vega/search" },
   { name: "ZeeFliz", endpoint: "/api/zeefliz/search" },
   { name: "ZinkMovies", endpoint: "/api/zinkmovies/search" },
+  { name: "DesireMovies", endpoint: "/api/desiremovies/search" },
 ];
