@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBaseUrl, getCookies } from '@/lib/baseurl';
+import { validateApiKey, createUnauthorizedResponse } from '@/lib/api-auth';
 
 interface NetMirrorSearchResponse {
   success: boolean;
   data?: {
     searchUrl: string;
-    searchResults?: any;
+    searchResults?: Record<string, unknown>;
     requestParams: {
       query: string;
       timestamp: string;
@@ -18,7 +19,7 @@ interface NetMirrorSearchResponse {
 /**
  * Function to search NetMirror content
  */
-async function searchNetMirror(query: string, timestamp: string): Promise<any> {
+async function searchNetMirror(query: string, timestamp: string): Promise<Record<string, unknown> | { rawResponse: string; contentType: string; searchUrl: string }> {
   try {
     const baseUrl = await getBaseUrl('netmirror');
     const cookies = await getCookies();
@@ -76,15 +77,21 @@ async function searchNetMirror(query: string, timestamp: string): Promise<any> {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse<NetMirrorSearchResponse>> {
+  // Validate API key
+  const validation = await validateApiKey(request);
+  if (!validation.valid) {
+    return createUnauthorizedResponse(validation.error || "Unauthorized") as NextResponse<NetMirrorSearchResponse>;
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('p');
+    const query = searchParams.get('q') || searchParams.get('p');
 
     if (!query) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required parameter: p',
-        message: 'Please provide a search query parameter (?p=movie_name)'
+        error: 'Missing required parameter: q or p',
+        message: 'Please provide a search query parameter (?q=movie_name or ?p=movie_name)'
       }, { status: 400 });
     }
 
@@ -95,7 +102,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<NetMirrorS
     const searchResults = await searchNetMirror(query, currentTimestamp);
 
     // Construct the search URL for reference
-    const baseUrl = await getNetMirrorUrl();
+    const baseUrl = await getBaseUrl('netmirror');
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const searchUrl = `${cleanBaseUrl}/search.php?s=${encodeURIComponent(query)}&t=${currentTimestamp}`;
 

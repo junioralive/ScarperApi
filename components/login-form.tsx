@@ -32,10 +32,10 @@ export function LoginForm({
       await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
       toast.success("Login successful!");
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to login");
     } finally {
@@ -48,7 +48,7 @@ export function LoginForm({
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to login with GitHub");

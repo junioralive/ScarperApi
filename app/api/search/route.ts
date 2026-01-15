@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
 import { PROVIDERS } from "@/lib/providers";
+import { validateApiKey, createUnauthorizedResponse } from "@/lib/api-auth";
 
 interface SearchResult {
   title: string;
@@ -27,16 +28,22 @@ async function searchProvider(
   providerName: string,
   endpoint: string,
   query: string,
-  baseUrl: string
+  baseUrl: string,
+  apiKey?: string
 ): Promise<ProviderResults> {
   try {
     const searchUrl = `${baseUrl}${endpoint}?q=${encodeURIComponent(query)}`;
     
-    const response = await fetch(searchUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
+    const headers: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    };
+    
+    // Add API key to headers if provided
+    if (apiKey) {
+      headers["x-api-key"] = apiKey;
+    }
+    
+    const response = await fetch(searchUrl, { headers });
 
     if (!response.ok) {
       return {
@@ -85,6 +92,15 @@ async function searchProvider(
 }
 
 export async function GET(request: NextRequest) {
+  // Validate API key
+  const validation = await validateApiKey(request);
+  if (!validation.valid) {
+    return createUnauthorizedResponse(validation.error || "Unauthorized");
+  }
+
+  // Store the API key to pass to internal requests
+  const apiKeyValue = validation.keyData?.key;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
@@ -126,7 +142,7 @@ export async function GET(request: NextRequest) {
 
     // Search all providers in parallel
     const searchPromises = PROVIDERS.map((provider) =>
-      searchProvider(provider.name, provider.endpoint, query, baseUrl)
+      searchProvider(provider.name, provider.endpoint, query, baseUrl, apiKeyValue)
     );
 
     const providerResults = await Promise.all(searchPromises);

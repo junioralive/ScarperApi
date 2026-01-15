@@ -46,10 +46,10 @@ export function SignupForm({
         email,
         password,
         name,
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
       toast.success("Account created successfully!");
-      router.push("/");
+      router.push("/dashboard");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     } finally {
@@ -62,7 +62,7 @@ export function SignupForm({
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/",
+        callbackURL: "/dashboard",
       });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to sign up with GitHub");
